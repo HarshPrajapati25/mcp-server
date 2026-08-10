@@ -91,6 +91,9 @@ async function main() {
                     case 'check_shipping_eta':
                         result = await ecomClient.checkShippingEta({ productIdOrName: req.body.productIdOrName || req.body.productId || req.body.name, destinationCity: req.body.destinationCity });
                         break;
+                    case 'get_product_reviews':
+                        result = await ecomClient.getProductReviews({ productIdOrName: req.body.productIdOrName || req.body.productId || req.body.name, page: req.body.page, limit: req.body.limit });
+                        break;
                     default:
                         return res.status(404).json({ error: `Tool '${toolName}' not found` });
                 }

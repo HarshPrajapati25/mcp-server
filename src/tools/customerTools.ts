@@ -228,4 +228,36 @@ export function registerCustomerTools(server: McpServer) {
             }
         }
     );
+
+    /**
+     * Customer Tool 8: get_product_reviews
+     * Retrieve customer star ratings, reviews, and feedback for a product
+     */
+    server.tool(
+        'get_product_reviews',
+        'Get customer star ratings (1-5), user reviews, and feedback comments for a product by ID or name.',
+        {
+            productIdOrName: z.union([z.number(), z.string()]).describe('Product ID or product title name (e.g. 1, 7, or "Magnetic Leather Wallet iPhone Cover")'),
+            page: z.number().int().min(1).default(1).optional(),
+            limit: z.number().int().min(1).max(50).default(10).optional(),
+        },
+        async (args) => {
+            try {
+                const data = await ecomClient.getProductReviews(args);
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(data, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error fetching product reviews: ${error.message}` }],
+                };
+            }
+        }
+    );
 }
