@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shoppingate MCP Server — Browser Playground</title>
+    <style>
+        :root {
+            --bg: #0f1419;
+            --surface: #1a2332;
+            --border: #2d3a4f;
+            --text: #e7ecf3;
+            --muted: #8b9cb3;
+            --accent: #3b82f6;
+            --green: #22c55e;
+            --red: #ef4444;
+            --amber: #f59e0b;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+        header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { margin: 0; font-size: 1.35rem; }
+        header p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+        main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+        section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        section h2 { margin: 0 0 1rem; font-size: 1.1rem; }
+        .row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; }
+        label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: var(--muted); flex: 1; min-width: 140px; }
+        input, select {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.45rem 0.65rem;
+            border-radius: 6px;
+        }
+        button {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 0.55rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        button:hover { opacity: 0.9; }
+        .badge {
+            font-size: 0.78rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            border: 1px solid var(--green);
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+        }
+        pre {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.85rem;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            max-height: 450px;
+        }
+        .tool-card {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.85rem;
+            margin-bottom: 0.85rem;
+            background: var(--bg);
+        }
+        .tool-card h3 { margin: 0 0 0.5rem; font-size: 0.95rem; color: var(--accent); }
+        .tool-card p { margin: 0 0 0.75rem; font-size: 0.8rem; color: var(--muted); }
+        footer { margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem; color: var(--muted); font-size: 0.85rem; }
+        footer a { color: var(--accent); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Shoppingate MCP Server — Browser Playground</h1>
+            <p>Test Merchant MCP Tools directly in Google Chrome / Browser</p>
+        </div>
+        <span class="badge" id="status-badge">Server Online (Port 3005)</span>
+    </header>
+
+    <main>
+        <div class="grid">
+            <div>
+                <section>
+                    <h2>Phase 1 Merchant Tools</h2>
+
+                    <!-- Tool 1 -->
+                    <div class="tool-card">
+                        <h3>1. search_products</h3>
+                        <p>Search product catalog with keyword & price range</p>
+                        <div class="row">
+                            <label>Query <input type="text" id="search-q" value="shoes" /></label>
+                            <label>Limit <input type="number" id="search-limit" value="5" /></label>
+                            <button type="button" onclick="runTool('search_products', { query: val('search-q'), limit: num('search-limit') })">Run Search</button>
+                        </div>
+                    </div>
+
+                    <!-- Tool 2 -->
+                    <div class="tool-card">
+                        <h3>2. get_product_details</h3>
+                        <p>Fetch details for a specific product ID</p>
+                        <div class="row">
+                            <label>Product ID <input type="number" id="detail-id" value="1" /></label>
+                            <button type="button" onclick="runTool('get_product_details', { productId: num('detail-id') })">Get Details</button>
+                        </div>
+                    </div>
+
+                    <!-- Tool 3 -->
+                    <div class="tool-card">
+                        <h3>3. update_product_stock</h3>
+                        <p>Update inventory quantity for a product</p>
+                        <div class="row">
+                            <label>Product ID <input type="number" id="stock-id" value="1" /></label>
+                            <label>New Stock <input type="number" id="stock-qty" value="50" /></label>
+                            <button type="button" onclick="runTool('update_product_stock', { productId: num('stock-id'), stock: num('stock-qty') })">Update Stock</button>
+                        </div>
+                    </div>
+
+                    <!-- Tool 4 -->
+                    <div class="tool-card">
+                        <h3>4. list_merchant_orders</h3>
+                        <p>List store customer orders with status filter</p>
+                        <div class="row">
+                            <label>Status
+                                <select id="order-status">
+                                    <option value="">All</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="shipped">Shipped</option>
+                                    <option value="delivered">Delivered</option>
+                                </select>
+                            </label>
+                            <button type="button" onclick="runTool('list_merchant_orders', { status: val('order-status') || undefined, limit: 5 })">List Orders</button>
+                        </div>
+                    </div>
+
+                    <!-- Tool 5 -->
+                    <div class="tool-card">
+                        <h3>5. create_coupon</h3>
+                        <p>Create a promotional discount coupon code</p>
+                        <div class="row">
+                            <label>Code <input type="text" id="coupon-code" value="SUMMER2026" /></label>
+                            <label>Discount SAR <input type="number" id="coupon-val" value="20" /></label>
+                            <button type="button" onclick="runTool('create_coupon', { code: val('coupon-code'), discountType: 'fixed', discountValue: num('coupon-val') })">Create Coupon</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div>
+                <section>
+                    <h2>Tool Response Output</h2>
+                    <pre id="output">Click any "Run" button on the left to test a tool live against the backend.</pre>
+                </section>
+
+                <section>
+                    <h2>Server Endpoints</h2>
+                    <p style="font-size:0.85rem;color:var(--muted)">Quick links to inspect schemas and server endpoints:</p>
+                    <ul>
+                        <li><a href="/health-check" target="_blank">GET /health-check</a> (Raw JSON Status)</li>
+                        <li><a href="/openapi.json" target="_blank">GET /openapi.json</a> (OpenAPI Schema for ChatGPT)</li>
+                        <li><a href="/sse" target="_blank">GET /sse</a> (Server-Sent Events Connection)</li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+
+        <footer>
+            <p>Shoppingate MCP Server v1.0.0 · TypeScript Express Runtime</p>
+        </footer>
+    </main>
+
+    <script>
+        function val(id) { return document.getElementById(id).value.trim(); }
+        function num(id) { return Number(val(id)); }
+
+        async function runTool(name, payload) {
+            const out = document.getElementById('output');
+            out.textContent = 'Executing tool: ' + name + '...\nPayload: ' + JSON.stringify(payload, null, 2);
+            try {
+                const res = await fetch('/api/tools/' + name, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                out.textContent = 'Status: ' + res.status + ' ' + res.statusText + '\n\n' + JSON.stringify(data, null, 2);
+            } catch (err) {
+                out.textContent = 'Execution Error: ' + err.message;
+            }
+        }
+
+        async function checkHealth() {
+            try {
+                const res = await fetch('/health-check');
+                const data = await res.json();
+                document.getElementById('status-badge').textContent = 'Server Online: ' + data.service + ' (' + data.version + ')';
+            } catch {
+                document.getElementById('status-badge').textContent = 'Server Offline';
+                document.getElementById('status-badge').style.borderColor = '#ef4444';
+                document.getElementById('status-badge').style.color = '#ef4444';
+            }
+        }
+
+        checkHealth();
+    </script>
+</body>
+</html>

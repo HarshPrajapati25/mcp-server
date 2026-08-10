@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "shoppingate-merchant": {
+      "command": "node",
+      "args": [
+        "c:/Repository/Shoppingate/Backend/MCP-SERVER/dist/index.js"
+      ],
+      "env": {
+        "TRANSPORT_MODE": "stdio",
+        "ECOM_SERVICE_URL": "https://microservices.shoppinggate.app/ecom",
+        "SERVICE_API_KEY": "O5Xpb9Lho$NooI@7@Q>ztCpGVCQ"
+      }
+    }
+  }
+}

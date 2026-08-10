@@ -1,0 +1,173 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Shoppingate Merchant Tools API",
+    "description": "MCP Merchant actions for ChatGPT — manage products, stock levels, orders, and promotional coupons.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3005",
+      "description": "Local MCP Server"
+    },
+    {
+      "url": "https://microservices.shoppinggate.app/mcp",
+      "description": "Dev Gateway Server"
+    }
+  ],
+  "paths": {
+    "/api/tools/search_products": {
+      "post": {
+        "summary": "Search catalog products",
+        "description": "Search products by keyword, category, price range, and stock status",
+        "operationId": "searchProducts",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": { "type": "string", "description": "Search keyword" },
+                  "page": { "type": "integer", "default": 1 },
+                  "limit": { "type": "integer", "default": 10 },
+                  "minPrice": { "type": "number" },
+                  "maxPrice": { "type": "number" },
+                  "lang": { "type": "string", "default": "en" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Successful search results" }
+        }
+      }
+    },
+    "/api/tools/get_product_details": {
+      "post": {
+        "summary": "Get product details",
+        "operationId": "getProductDetails",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["productId"],
+                "properties": {
+                  "productId": { "type": "integer", "description": "Numeric product ID" },
+                  "lang": { "type": "string", "default": "en" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Product details object" }
+        }
+      }
+    },
+    "/api/tools/update_product_stock": {
+      "post": {
+        "summary": "Update product stock quantity",
+        "operationId": "updateProductStock",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["productId", "stock"],
+                "properties": {
+                  "productId": { "type": "integer" },
+                  "stock": { "type": "integer" },
+                  "inStock": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Stock update confirmation" }
+        }
+      }
+    },
+    "/api/tools/list_merchant_orders": {
+      "post": {
+        "summary": "List merchant customer orders",
+        "operationId": "listMerchantOrders",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "page": { "type": "integer", "default": 1 },
+                  "limit": { "type": "integer", "default": 10 },
+                  "status": { "type": "string", "enum": ["pending", "processing", "shipped", "delivered", "cancelled"] },
+                  "search": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "List of orders" }
+        }
+      }
+    },
+    "/api/tools/update_order_status": {
+      "post": {
+        "summary": "Update order fulfillment status",
+        "operationId": "updateOrderStatus",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["orderId", "status"],
+                "properties": {
+                  "orderId": { "type": "integer" },
+                  "status": { "type": "string", "enum": ["pending", "processing", "shipped", "delivered", "cancelled"] },
+                  "notes": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Order status update result" }
+        }
+      }
+    },
+    "/api/tools/create_coupon": {
+      "post": {
+        "summary": "Create discount coupon code",
+        "operationId": "createCoupon",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["code", "discountType", "discountValue"],
+                "properties": {
+                  "code": { "type": "string" },
+                  "discountType": { "type": "string", "enum": ["percentage", "fixed"] },
+                  "discountValue": { "type": "number" },
+                  "minOrderAmount": { "type": "number" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Coupon creation result" }
+        }
+      }
+    }
+  }
+}
