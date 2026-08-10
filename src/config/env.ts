@@ -10,6 +10,11 @@ export interface AppConfig {
     serviceApiKey: string;
     ecomTimeoutMs: number;
     recEngineUrl: string;
+    jwtSecret: string;
+    llmProvider: string;
+    openaiApiKey?: string;
+    geminiApiKey?: string;
+    geminiModel?: string;
 }
 
 export const config: AppConfig = {
@@ -19,4 +24,9 @@ export const config: AppConfig = {
     serviceApiKey: process.env.SERVICE_API_KEY || 'O5Xpb9Lho$NooI@7@Q>ztCpGVCQ',
     ecomTimeoutMs: parseInt(process.env.ECOM_SERVICE_TIMEOUT_MS || '8000', 10),
     recEngineUrl: (process.env.RECOMMENDATION_ENGINE_URL || 'https://microservices.shoppinggate.app/aiengine').replace(/\/$/, ''),
+    jwtSecret: process.env.JWT_SECRET || 'supersecretjwtkey',
+    llmProvider: process.env.LLM_PROVIDER || 'openai',
+    openaiApiKey: process.env.OPENAI_API_KEY,
+    geminiApiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
+    geminiModel: process.env.GEMINI_MODEL || 'gemini-1.5-flash-latest',
 };

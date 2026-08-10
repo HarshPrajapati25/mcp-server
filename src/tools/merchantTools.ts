@@ -1,8 +1,24 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { ecomClient } from '../services/ecomClient.js';
+import { toolRegistry } from '../registry/tool-registry.js';
 
 export function registerMerchantTools(server: McpServer) {
+    toolRegistry.registerTool({
+        name: 'search_products',
+        description: 'Search the Shoppingate product catalog with keywords, category filters, and price ranges.',
+        schema: z.object({
+            query: z.string().optional(),
+            page: z.number().int().optional(),
+            limit: z.number().int().optional(),
+            categoryId: z.number().int().optional(),
+            minPrice: z.number().optional(),
+            maxPrice: z.number().optional(),
+            lang: z.enum(['en', 'ar']).optional(),
+        }),
+        requiresAuth: false,
+        execute: async (args) => ecomClient.searchProducts(args),
+    });
     /**
      * Tool 1: search_products
      * Search product catalog with keyword, category, brand, and price range filters

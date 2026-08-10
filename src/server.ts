@@ -16,5 +16,16 @@ export function createServer(): McpServer {
     registerMerchantResources(server);
     registerMerchantPrompts(server);
 
+    // Subscribe to ToolRegistry dynamic changes to notify Claude clients
+    import('./registry/tool-registry.js').then(({ toolRegistry }) => {
+        toolRegistry.onToolsChanged(async () => {
+            try {
+                await server.server.sendToolListChanged();
+            } catch (err: any) {
+                console.warn('Failed to send tool list changed notification:', err.message);
+            }
+        });
+    });
+
     return server;
 }
