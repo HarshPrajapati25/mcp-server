@@ -197,4 +197,35 @@ export function registerCustomerTools(server: McpServer) {
             };
         }
     );
+
+    /**
+     * Customer Tool 7: check_shipping_eta
+     * Check delivery timeline, carrier ETA, and shipping cost for any product
+     */
+    server.tool(
+        'check_shipping_eta',
+        'Check estimated delivery timeline, express shipping availability, and delivery cost to any Saudi city for a product.',
+        {
+            productIdOrName: z.union([z.number(), z.string()]).describe('Product ID or product title name (e.g. 1 or "Running Sports Shoes")'),
+            destinationCity: z.string().default('Riyadh').describe('Destination city in KSA (e.g. Riyadh, Jeddah, Dammam)'),
+        },
+        async (args) => {
+            try {
+                const data = await ecomClient.checkShippingEta(args);
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(data, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error checking shipping ETA: ${error.message}` }],
+                };
+            }
+        }
+    );
 }

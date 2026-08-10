@@ -88,6 +88,9 @@ async function main() {
                     case 'delete_promotion_coupon':
                         result = await ecomClient.deleteCoupon(req.body.couponCodeOrId || req.body.code || req.body.id);
                         break;
+                    case 'check_shipping_eta':
+                        result = await ecomClient.checkShippingEta({ productIdOrName: req.body.productIdOrName || req.body.productId || req.body.name, destinationCity: req.body.destinationCity });
+                        break;
                     default:
                         return res.status(404).json({ error: `Tool '${toolName}' not found` });
                 }

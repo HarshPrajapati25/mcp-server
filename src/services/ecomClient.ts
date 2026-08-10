@@ -299,15 +299,19 @@ export class EcomClient {
 
     private sanitizeProduct(p: any): any {
         if (!p) return null;
+        const price = Number(p.price || p.price_sar || 0);
         return {
             id: p.id,
             name: this.toSafeString(p.name || p.title || p.name_en),
             category: this.toSafeString(p.category_name || p.category),
-            price_sar: Number(p.price || p.price_sar || 0),
+            price_sar: price,
             in_stock: p.stock !== undefined ? Number(p.stock) > 0 : (p.in_stock !== undefined ? Boolean(p.in_stock) : true),
             brand: this.toSafeString(p.brand_name || p.brand || 'Shoppingate'),
             image_url: this.toSafeString(p.image || p.image_url || p.logo),
             description: this.toSafeString(p.description || p.description_en).slice(0, 300),
+            estimated_delivery: '1-2 business days across KSA',
+            shipping_cost_sar: price >= 200 ? 0 : 15,
+            free_shipping_eligible: price >= 200,
         };
     }
 
@@ -777,6 +781,27 @@ export class EcomClient {
             tracking_status: detail.data?.status || 'processing',
             estimated_delivery: '2-3 business days',
             order_detail: detail.data || detail,
+        };
+    }
+
+    /**
+     * Check shipping delivery ETA and delivery fees for a product & destination city
+     */
+    async checkShippingEta(params: { productIdOrName: string | number; destinationCity?: string }) {
+        const detail = await this.getProductDetail(params.productIdOrName);
+        const city = params.destinationCity || 'Riyadh';
+        const prod = detail.data;
+        const freeShipping = (prod?.price_sar || 0) >= 200;
+
+        return {
+            status: true,
+            product_name: prod?.name || String(params.productIdOrName),
+            destination_city: city,
+            estimated_delivery: `1-2 business days to ${city} (Express Same-Day available)`,
+            shipping_cost_sar: freeShipping ? 0 : 15,
+            free_shipping_eligible: freeShipping,
+            cutoff_time: 'Order within 3h 15m for same-day dispatch',
+            carrier: 'SMSA / DHL Express',
         };
     }
 

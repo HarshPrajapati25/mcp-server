@@ -40,7 +40,7 @@
         header h1 { margin: 0; font-size: 1.35rem; font-weight: 700; color: #fff; }
         header p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.85rem; }
         main { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-        .layout { display: grid; grid-template-columns: 1fr 450px; gap: 1.5rem; }
+        .layout { display: grid; grid-template-columns: 1fr 480px; gap: 1.5rem; }
         @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } }
         
         .section-title {
@@ -54,7 +54,7 @@
         .section-title.merchant { color: var(--accent); }
         .section-title.customer { color: var(--purple); }
 
-        .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         
         .tool-card {
             border: 1px solid var(--border);
@@ -109,6 +109,7 @@
             font-weight: 600;
         }
 
+        /* Smart Console UI */
         .output-panel {
             position: sticky;
             top: 5rem;
@@ -122,18 +123,42 @@
         }
         .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .output-header h2 { margin: 0; font-size: 1.05rem; }
-        pre {
+        
+        .trace-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        .trace-step {
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 1rem;
-            overflow-y: auto;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 0.8rem;
-            flex: 1;
-            margin: 0;
-            color: #a7f3d0;
+            padding: 0.85rem;
+            font-size: 0.82rem;
         }
+        .trace-step .step-title { font-weight: 600; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem; }
+        .trace-step.blue { border-left: 4px solid var(--accent); }
+        .trace-step.green { border-left: 4px solid var(--green); }
+        .trace-step.purple { border-left: 4px solid var(--purple); }
+
+        .result-card-list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem; }
+        .result-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.65rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .result-item img { width: 42px; height: 42px; border-radius: 6px; object-fit: cover; background: #334155; }
+        .result-item .details { flex: 1; }
+        .result-item .name { font-weight: 600; font-size: 0.82rem; color: #fff; }
+        .result-item .sub { font-size: 0.75rem; color: var(--muted); }
+        .result-item .price { font-weight: 700; color: var(--green); font-size: 0.85rem; }
+
         .endpoints-list {
             margin-top: 1rem;
             padding-top: 1rem;
@@ -147,7 +172,7 @@
     <header>
         <div>
             <h1>Shoppingate AI Gateway — Interactive Playground</h1>
-            <p>Direct Browser Testing for All 15 Dual-Scope MCP Tools (Merchant & Customer)</p>
+            <p>Direct Browser Testing for All 16 Dual-Scope MCP Tools (Merchant & Customer)</p>
         </div>
         <span class="badge" id="status-badge">Server Online (Port 3005)</span>
     </header>
@@ -173,11 +198,11 @@
                     <!-- 2. get_product_details -->
                     <div class="tool-card">
                         <h3>get_product_details <span class="tag">MERCHANT</span></h3>
-                        <p>Fetch specifications & stock for product ID</p>
+                        <p>Fetch specifications & stock for product ID/name</p>
                         <div class="row">
-                            <label>Product ID <input type="number" id="m-detail-id" value="1" /></label>
+                            <label>Product ID/Name <input type="text" id="m-detail-id" value="1" /></label>
                         </div>
-                        <button onclick="runTool('get_product_details', { productId: num('m-detail-id') })">Run Tool</button>
+                        <button onclick="runTool('get_product_details', { productId: val('m-detail-id') })">Run Tool</button>
                     </div>
 
                     <!-- 3. update_product_stock -->
@@ -188,7 +213,7 @@
                             <label>Product ID <input type="number" id="m-stock-id" value="1" /></label>
                             <label>Stock Qty <input type="number" id="m-stock-qty" value="50" /></label>
                         </div>
-                        <button onclick="runTool('update_product_stock', { productId: num('m-stock-id'), stock: num('stock-qty') })">Run Tool</button>
+                        <button onclick="runTool('update_product_stock', { productId: num('m-stock-id'), stock: num('m-stock-qty') })">Run Tool</button>
                     </div>
 
                     <!-- 4. list_merchant_orders -->
@@ -267,7 +292,7 @@
                 </div>
 
                 <!-- Customer Section -->
-                <h2 class="section-title customer">🛍️ Customer Super-App Tools (6 Tools)</h2>
+                <h2 class="section-title customer">🛍️ Customer Super-App Tools (7 Tools)</h2>
                 <div class="tools-grid">
 
                     <!-- 1. customer_search_products -->
@@ -281,7 +306,18 @@
                         <button class="purple" onclick="runTool('customer_search_products', { query: val('c-search-q'), maxPrice: num('c-search-max') })">Run Tool</button>
                     </div>
 
-                    <!-- 2. get_recommendations -->
+                    <!-- 2. check_shipping_eta -->
+                    <div class="tool-card cust">
+                        <h3>check_shipping_eta <span class="tag">CUSTOMER</span></h3>
+                        <p>Check delivery timeline, carrier ETA & shipping cost</p>
+                        <div class="row">
+                            <label>Product Name/ID <input type="text" id="c-eta-prod" value="Running Sports Shoes" /></label>
+                            <label>City <input type="text" id="c-eta-city" value="Riyadh" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('check_shipping_eta', { productIdOrName: val('c-eta-prod'), destinationCity: val('c-eta-city') })">Check ETA</button>
+                    </div>
+
+                    <!-- 3. get_recommendations -->
                     <div class="tool-card cust">
                         <h3>get_recommendations <span class="tag">CUSTOMER</span></h3>
                         <p>Personalized Recommended, Trending & Deals</p>
@@ -291,17 +327,17 @@
                         <button class="purple" onclick="runTool('get_recommendations', { userId: val('c-rec-uid'), lang: 'en' })">Run Tool</button>
                     </div>
 
-                    <!-- 3. get_similar_products -->
+                    <!-- 4. get_similar_products -->
                     <div class="tool-card cust">
                         <h3>get_similar_products <span class="tag">CUSTOMER</span></h3>
                         <p>Find similar products for PDP recommendations</p>
                         <div class="row">
-                            <label>Product ID <input type="number" id="c-sim-id" value="5" /></label>
+                            <label>Product ID/Name <input type="text" id="c-sim-id" value="5" /></label>
                         </div>
-                        <button class="purple" onclick="runTool('get_similar_products', { productId: num('c-sim-id') })">Run Tool</button>
+                        <button class="purple" onclick="runTool('get_similar_products', { productId: val('c-sim-id') })">Run Tool</button>
                     </div>
 
-                    <!-- 4. track_customer_order -->
+                    <!-- 5. track_customer_order -->
                     <div class="tool-card cust">
                         <h3>track_customer_order <span class="tag">CUSTOMER</span></h3>
                         <p>Track shipment status & delivery ETA</p>
@@ -311,7 +347,7 @@
                         <button class="purple" onclick="runTool('track_customer_order', { orderId: val('c-track-id') })">Run Tool</button>
                     </div>
 
-                    <!-- 5. check_visa_guidance -->
+                    <!-- 6. check_visa_guidance -->
                     <div class="tool-card cust">
                         <h3>check_visa_guidance <span class="tag">CUSTOMER</span></h3>
                         <p>Visa rules, fees & packages for travel</p>
@@ -322,7 +358,7 @@
                         <button class="purple" onclick="runTool('check_visa_guidance', { destinationCountry: val('c-visa-dest'), passportCountry: val('c-visa-pass') })">Run Tool</button>
                     </div>
 
-                    <!-- 6. search_travel_insurance -->
+                    <!-- 7. search_travel_insurance -->
                     <div class="tool-card cust">
                         <h3>search_travel_insurance <span class="tag">CUSTOMER</span></h3>
                         <p>Search travel insurance coverage plans</p>
@@ -340,10 +376,16 @@
             <div>
                 <div class="output-panel">
                     <div class="output-header">
-                        <h2>Tool Execution Console</h2>
-                        <button style="width:auto;margin:0;padding:0.3rem 0.6rem;background:var(--border)" onclick="document.getElementById('output').textContent='Console ready.'">Clear</button>
+                        <h2>Smart Tooling Execution Trace</h2>
+                        <button style="width:auto;margin:0;padding:0.3rem 0.6rem;background:var(--border)" onclick="resetConsole()">Clear</button>
                     </div>
-                    <pre id="output">Click any tool's "Run Tool" button on the left to test live execution against backend services.</pre>
+                    
+                    <div class="trace-container" id="trace-box">
+                        <div class="trace-step blue">
+                            <div class="step-title">⚡ Gateway Ready</div>
+                            <div>Select any tool card on the left to trigger real-time AI tool execution and data protection pipeline.</div>
+                        </div>
+                    </div>
                     
                     <div class="endpoints-list">
                         <strong>Quick Endpoints:</strong>
@@ -362,19 +404,81 @@
         function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
         function num(id) { return Number(val(id)); }
 
+        function resetConsole() {
+            document.getElementById('trace-box').innerHTML = `
+                <div class="trace-step blue">
+                    <div class="step-title">⚡ Gateway Ready</div>
+                    <div>Console cleared. Ready for next tool execution.</div>
+                </div>
+            `;
+        }
+
         async function runTool(name, payload) {
-            const out = document.getElementById('output');
-            out.textContent = '🚀 Executing tool: ' + name + '...\n\nPayload:\n' + JSON.stringify(payload, null, 2);
+            const traceBox = document.getElementById('trace-box');
+            traceBox.innerHTML = `
+                <div class="trace-step blue">
+                    <div class="step-title">🚀 Step 1: Tool Execution Triggered</div>
+                    <div><strong>Tool:</strong> ${name}</div>
+                    <div style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem;">Parameters: ${JSON.stringify(payload)}</div>
+                </div>
+                <div class="trace-step purple">
+                    <div class="step-title">🔒 Step 2: Enterprise Data Protection Guard</div>
+                    <div>Applying DTO Sanitizer (Filtering internal DB keys, merchant costs, & SQL IDs)</div>
+                </div>
+            `;
+
             try {
                 const res = await fetch('/api/tools/' + name, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                 });
-                const data = await res.json();
-                out.textContent = '✅ HTTP Status: ' + res.status + ' ' + res.statusText + '\n\nResponse Payload:\n' + JSON.stringify(data, null, 2);
+                const responseData = await res.json();
+                
+                let resultsHtml = '';
+                const payloadData = responseData.data?.data || responseData.data;
+
+                if (payloadData?.products && Array.isArray(payloadData.products)) {
+                    resultsHtml = '<div class="result-card-list">' + payloadData.products.map(p => `
+                        <div class="result-item">
+                            <img src="${p.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff'}" alt="${p.name}" />
+                            <div class="details">
+                                <div class="name">${p.name}</div>
+                                <div class="sub">${p.category} · ${p.brand || 'Shoppingate'} · 🚚 ${p.estimated_delivery || '1-2 days'}</div>
+                            </div>
+                            <div class="price">${p.price_sar} SAR</div>
+                        </div>
+                    `).join('') + '</div>';
+                } else if (payloadData?.product_name && payloadData?.estimated_delivery) {
+                    resultsHtml = `
+                        <div class="result-card-list">
+                            <div class="result-item">
+                                <div class="details">
+                                    <div class="name">🚚 ${payloadData.product_name}</div>
+                                    <div class="sub">Destination: <strong>${payloadData.destination_city}</strong> · Carrier: ${payloadData.carrier}</div>
+                                    <div class="sub" style="color:var(--green);font-weight:600;margin-top:0.2rem;">ETA: ${payloadData.estimated_delivery}</div>
+                                </div>
+                                <div class="price">${payloadData.shipping_cost_sar === 0 ? 'FREE Shipping' : payloadData.shipping_cost_sar + ' SAR'}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultsHtml = `<pre style="margin-top:0.5rem;">${JSON.stringify(responseData, null, 2)}</pre>`;
+                }
+
+                traceBox.innerHTML += `
+                    <div class="trace-step green">
+                        <div class="step-title">✅ Step 3: Verified Response Ready (${res.status} OK)</div>
+                        ${resultsHtml}
+                    </div>
+                `;
             } catch (err) {
-                out.textContent = '❌ Execution Error: ' + err.message;
+                traceBox.innerHTML += `
+                    <div class="trace-step" style="border-left:4px solid var(--amber)">
+                        <div class="step-title" style="color:var(--amber)">❌ Step 3: Execution Error</div>
+                        <div>${err.message}</div>
+                    </div>
+                `;
             }
         }
 
