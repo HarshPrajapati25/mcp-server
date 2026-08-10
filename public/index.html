@@ -178,6 +178,20 @@
     </header>
 
     <main>
+        <!-- Auth Simulation Bar -->
+        <div style="margin-bottom: 1.25rem; padding: 0.85rem 1.1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
+                <label style="flex: none; font-weight: 600; color: #fff; font-size: 0.85rem;">🔑 JWT Token Simulator:</label>
+                <select id="auth-mode-select" onchange="updateAuthContext()" style="max-width: 320px;">
+                    <option value="customer" selected>Customer Session (User #8543, Role: Customer)</option>
+                    <option value="merchant">Merchant Admin Session (Merchant #42, Role: Admin)</option>
+                    <option value="guest">Guest / Unauthenticated (No Token)</option>
+                </select>
+                <input type="text" id="auth-token-input" value="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.cust_8543" style="font-family: monospace; font-size: 0.75rem;" readonly />
+            </div>
+            <span class="badge" id="auth-status-badge" style="border-color: var(--purple); color: var(--purple); background: rgba(139, 92, 246, 0.15);">Customer Token Attached</span>
+        </div>
+
         <div class="layout">
             <div>
                 <!-- Merchant Section -->
@@ -483,7 +497,7 @@
                     <div class="trace-container" id="trace-box">
                         <div class="trace-step blue">
                             <div class="step-title">⚡ Gateway Ready</div>
-                            <div>Select any tool card on the left to trigger real-time AI tool execution and data protection pipeline.</div>
+                            <div>Select any tool card on the left to trigger real-time AI tool execution and header forwarding pipeline.</div>
                         </div>
                     </div>
                     
@@ -504,6 +518,32 @@
         function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
         function num(id) { return Number(val(id)); }
 
+        function updateAuthContext() {
+            const mode = document.getElementById('auth-mode-select').value;
+            const tokenInput = document.getElementById('auth-token-input');
+            const badge = document.getElementById('auth-status-badge');
+
+            if (mode === 'customer') {
+                tokenInput.value = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.cust_8543';
+                badge.textContent = 'Customer Token Attached';
+                badge.style.borderColor = 'var(--purple)';
+                badge.style.color = 'var(--purple)';
+                badge.style.background = 'rgba(139, 92, 246, 0.15)';
+            } else if (mode === 'merchant') {
+                tokenInput.value = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.merch_42_admin';
+                badge.textContent = 'Merchant Admin Token Attached';
+                badge.style.borderColor = 'var(--accent)';
+                badge.style.color = 'var(--accent)';
+                badge.style.background = 'rgba(59, 130, 246, 0.15)';
+            } else {
+                tokenInput.value = 'Unauthenticated (No Token)';
+                badge.textContent = 'Guest Mode (No Token)';
+                badge.style.borderColor = 'var(--amber)';
+                badge.style.color = 'var(--amber)';
+                badge.style.background = 'rgba(245, 158, 11, 0.15)';
+            }
+        }
+
         function resetConsole() {
             document.getElementById('trace-box').innerHTML = `
                 <div class="trace-step blue">
@@ -515,6 +555,12 @@
 
         async function runTool(name, payload) {
             const traceBox = document.getElementById('trace-box');
+            const token = document.getElementById('auth-token-input').value;
+            const mode = document.getElementById('auth-mode-select').value;
+            
+            const isGuest = mode === 'guest';
+            const tokenHeader = isGuest ? '' : token;
+
             traceBox.innerHTML = `
                 <div class="trace-step blue">
                     <div class="step-title">🚀 Step 1: Tool Execution Triggered</div>
@@ -522,15 +568,22 @@
                     <div style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem;">Parameters: ${JSON.stringify(payload)}</div>
                 </div>
                 <div class="trace-step purple">
-                    <div class="step-title">🔒 Step 2: Enterprise Data Protection Guard</div>
-                    <div>Applying DTO Sanitizer (Filtering internal DB keys, merchant costs, & SQL IDs)</div>
+                    <div class="step-title">🔒 Step 2: Auth Header Forwarding & DTO Guard</div>
+                    <div><strong>Forwarding Headers:</strong> Authorization: ${isGuest ? 'NONE (Bypass/Guest)' : token.slice(0, 30) + '...'}</div>
+                    <div><strong>User ID Header:</strong> x-user-id: ${isGuest ? 'guest' : (mode === 'merchant' ? '42' : '8543')}</div>
                 </div>
             `;
 
             try {
+                const reqHeaders = { 'Content-Type': 'application/json' };
+                if (!isGuest) {
+                    reqHeaders['Authorization'] = token;
+                    reqHeaders['x-user-id'] = mode === 'merchant' ? '42' : '8543';
+                }
+
                 const res = await fetch('/api/tools/' + name, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: reqHeaders,
                     body: JSON.stringify(payload),
                 });
                 const responseData = await res.json();
@@ -568,7 +621,7 @@
 
                 traceBox.innerHTML += `
                     <div class="trace-step green">
-                        <div class="step-title">✅ Step 3: Verified Response Ready (${res.status} OK)</div>
+                        <div class="step-title">✅ Step 3: Verified Backend Response (${res.status} OK)</div>
                         ${resultsHtml}
                     </div>
                 `;

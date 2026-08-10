@@ -118,6 +118,10 @@ export function registerMerchantTools(server: McpServer) {
             toDate: z.string().optional().describe('Filter orders up to date (YYYY-MM-DD)'),
         },
         async (args) => {
+            const authCheck = ecomClient.validateToolAuth('list_merchant_orders');
+            if (!authCheck.authorized) {
+                return { content: [{ type: 'text', text: JSON.stringify(authCheck.response, null, 2) }] };
+            }
             try {
                 const data = await ecomClient.listOrders(args);
                 return {

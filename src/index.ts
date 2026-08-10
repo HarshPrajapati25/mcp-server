@@ -3,6 +3,7 @@ import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
+import rateLimit from 'express-rate-limit';
 import { createServer } from './server.js';
 import { config } from './config/env.js';
 
@@ -43,10 +44,36 @@ async function main() {
             res.sendFile(openapiPath);
         });
 
+        // Rate Limiting Middleware (30 requests/minute per IP to prevent LLM cost explosion & DDoS)
+        const apiLimiter = rateLimit({
+            windowMs: 60 * 1000,
+            max: 30,
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: {
+                success: false,
+                error: 'Too many tool execution requests from this IP. Please try again after 1 minute.',
+            },
+        });
+
+        app.use('/api/', apiLimiter);
+
         // ChatGPT Action route handler for MCP merchant tools
         app.post('/api/tools/:toolName', async (req: Request, res: Response) => {
             const { toolName } = req.params;
             const { ecomClient } = await import('./services/ecomClient.js');
+
+            // Header Forwarding for Token Auth & Tenant Privacy
+            ecomClient.setAuthHeader({
+                authorization: req.headers.authorization as string,
+                'x-user-id': req.headers['x-user-id'] as string,
+            });
+
+            // Validate Tool Authentication Requirements
+            const authCheck = ecomClient.validateToolAuth(toolName, req.headers as Record<string, string>);
+            if (!authCheck.authorized) {
+                return res.status(401).json(authCheck.response);
+            }
 
             try {
                 let result: any = null;

@@ -73,6 +73,73 @@ export class EcomClient {
         this.initSeedData();
     }
 
+    /**
+     * Header Forwarding Helper for Cross-Tenant Privacy & Token Authorization
+     */
+    public setAuthHeader(headers?: Record<string, string>) {
+        if (!headers) return;
+        if (headers['authorization']) {
+            this.client.defaults.headers.common['Authorization'] = headers['authorization'];
+        }
+        if (headers['x-user-id']) {
+            this.client.defaults.headers.common['x-user-id'] = headers['x-user-id'];
+        }
+    }
+
+    /**
+     * Auth Verification & OAuth Challenge Evaluator
+     */
+    public validateToolAuth(toolName: string, headers?: Record<string, string>): { authorized: boolean; response?: any } {
+        const publicTools = [
+            'search_products',
+            'customer_search_products',
+            'get_product_details',
+            'check_shipping_eta',
+            'get_product_reviews',
+            'list_product_categories',
+            'list_brand_storefronts',
+            'get_return_policy_and_reasons',
+            'search_flights',
+            'search_airports',
+            'search_hotels',
+            'get_hotel_details',
+            'get_recommendations',
+            'get_similar_products',
+            'check_visa_guidance',
+            'search_travel_insurance',
+            'list_promotions'
+        ];
+
+        // 1. If public tool, allow execution without auth token
+        if (publicTools.includes(toolName)) {
+            return { authorized: true };
+        }
+
+        const authHeader = headers?.['authorization'] || headers?.['Authorization'] || process.env.AUTH_TOKEN;
+        const isGuest = !authHeader || authHeader.includes('Unauthenticated') || authHeader.includes('guest');
+
+        // 2. If unauthenticated guest calling protected tool, return Auth Challenge Payload
+        if (isGuest) {
+            const isMerchantTool = ['update_product_stock', 'list_merchant_orders', 'get_order_details', 'update_order_status', 'create_coupon', 'delete_promotion_coupon'].includes(toolName);
+            return {
+                authorized: false,
+                response: {
+                    status: false,
+                    auth_required: true,
+                    error: 'UNAUTHENTICATED_ACCESS_ATTEMPT',
+                    message: isMerchantTool
+                        ? `🔒 Merchant Authentication Required: You must be logged in as a store administrator to run '${toolName}'.`
+                        : `🔒 Customer Authentication Required: Please log in to your Shoppingate account to access '${toolName}'.`,
+                    login_url: isMerchantTool
+                        ? 'https://merchant.shoppinggate.app/login'
+                        : 'https://shoppinggate.app/auth/login?redirect=mcp'
+                }
+            };
+        }
+
+        return { authorized: true };
+    }
+
     private initSeedData() {
         // Seed Products (including iPhone cases and popular items)
         const initialProducts: ProductRecord[] = [

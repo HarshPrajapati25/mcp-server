@@ -313,6 +313,10 @@ export function registerCustomerTools(server: McpServer) {
             comments: z.string().optional().describe('Customer notes or defect details'),
         },
         async (args) => {
+            const authCheck = ecomClient.validateToolAuth('submit_return_request');
+            if (!authCheck.authorized) {
+                return { content: [{ type: 'text', text: JSON.stringify(authCheck.response, null, 2) }] };
+            }
             const data = await ecomClient.submitReturnRequest(args);
             return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
         }
@@ -330,6 +334,10 @@ export function registerCustomerTools(server: McpServer) {
             quantity: z.number().int().positive().default(1).optional(),
         },
         async (args) => {
+            const authCheck = ecomClient.validateToolAuth('manage_cart');
+            if (!authCheck.authorized) {
+                return { content: [{ type: 'text', text: JSON.stringify(authCheck.response, null, 2) }] };
+            }
             const data = await ecomClient.manageCart(args);
             return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
         }
@@ -346,6 +354,10 @@ export function registerCustomerTools(server: McpServer) {
             productId: z.union([z.number(), z.string()]).optional(),
         },
         async (args) => {
+            const authCheck = ecomClient.validateToolAuth('manage_wishlist');
+            if (!authCheck.authorized) {
+                return { content: [{ type: 'text', text: JSON.stringify(authCheck.response, null, 2) }] };
+            }
             const data = await ecomClient.manageWishlist(args);
             return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
         }
