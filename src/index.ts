@@ -7,6 +7,8 @@ import rateLimit from 'express-rate-limit';
 import { createServer } from './server.js';
 import { config } from './config/env.js';
 
+import chatRoutes from './routes/chat.routes.js';
+
 async function main() {
     const server = createServer();
 
@@ -20,8 +22,9 @@ async function main() {
         const app = express();
         app.use(cors());
         app.use(express.json());
+        app.use('/', chatRoutes);
 
-        let sseTransport: SSEServerTransport | null = null;
+        const activeTransports = new Map<string, SSEServerTransport>();
         const publicPath = path.resolve(process.cwd(), 'public/index.html');
 
         app.get('/', (_req: Request, res: Response) => {
@@ -115,42 +118,6 @@ async function main() {
                     case 'delete_promotion_coupon':
                         result = await ecomClient.deleteCoupon(req.body.couponCodeOrId || req.body.code || req.body.id);
                         break;
-                    case 'check_shipping_eta':
-                        result = await ecomClient.checkShippingEta({ productIdOrName: req.body.productIdOrName || req.body.productId || req.body.name, destinationCity: req.body.destinationCity });
-                        break;
-                    case 'get_product_reviews':
-                        result = await ecomClient.getProductReviews({ productIdOrName: req.body.productIdOrName || req.body.productId || req.body.name, page: req.body.page, limit: req.body.limit });
-                        break;
-                    case 'list_product_categories':
-                        result = await ecomClient.listCategories(req.body.lang);
-                        break;
-                    case 'list_brand_storefronts':
-                        result = await ecomClient.listBrands(req.body.lang);
-                        break;
-                    case 'get_return_policy_and_reasons':
-                        result = await ecomClient.getReturnPolicy();
-                        break;
-                    case 'submit_return_request':
-                        result = await ecomClient.submitReturnRequest(req.body);
-                        break;
-                    case 'manage_cart':
-                        result = await ecomClient.manageCart(req.body);
-                        break;
-                    case 'manage_wishlist':
-                        result = await ecomClient.manageWishlist(req.body);
-                        break;
-                    case 'search_flights':
-                        result = await ecomClient.searchFlights(req.body);
-                        break;
-                    case 'search_airports':
-                        result = await ecomClient.searchAirports(req.body.query || '');
-                        break;
-                    case 'search_hotels':
-                        result = await ecomClient.searchHotels(req.body);
-                        break;
-                    case 'get_hotel_details':
-                        result = await ecomClient.getHotelDetail(req.body.hotelIdOrName || req.body.id || req.body.name);
-                        break;
                     default:
                         return res.status(404).json({ error: `Tool '${toolName}' not found` });
                 }
@@ -163,18 +130,49 @@ async function main() {
 
         app.get('/sse', async (req: Request, res: Response) => {
             console.log('🔌 New SSE connection established.');
+            res.setHeader('X-Accel-Buffering', 'no');
             const connectionServer = createServer();
-            sseTransport = new SSEServerTransport('/messages', res);
+            const sseTransport = new SSEServerTransport('/messages', res);
+            const sessionId = sseTransport.sessionId;
+            activeTransports.set(sessionId, sseTransport);
+
+            res.on('close', () => {
+                console.log(`🔌 SSE connection closed (Session: ${sessionId}).`);
+                activeTransports.delete(sessionId);
+            });
+
             await connectionServer.connect(sseTransport);
         });
 
-        app.post('/messages', async (req: Request, res: Response) => {
-            if (sseTransport) {
-                await sseTransport.handlePostMessage(req, res);
-            } else {
-                res.status(400).json({ error: 'No active SSE connection found' });
+        const handleMessages = async (req: Request, res: Response) => {
+            if (!req.headers['content-type']) {
+                req.headers['content-type'] = 'application/json';
             }
-        });
+
+            const sessionId = (req.query.sessionId || req.body?.sessionId) as string;
+            let transport = activeTransports.get(sessionId);
+
+            if (!transport && activeTransports.size === 1) {
+                transport = Array.from(activeTransports.values())[0];
+            }
+
+            if (!transport) {
+                return res.status(404).json({ error: 'No active SSE connection found or session expired' });
+            }
+
+            try {
+                // Pass req.body as 3rd parameter because express.json() consumed the request stream
+                await transport.handlePostMessage(req, res, req.body);
+            } catch (err: any) {
+                console.error('Error in handlePostMessage:', err.message);
+                if (!res.headersSent) {
+                    res.status(400).json({ error: err.message });
+                }
+            }
+        };
+
+        app.post('/messages', handleMessages);
+        app.post('/sse', handleMessages);
 
         app.listen(config.port, () => {
             console.log(`🚀 Shoppingate MCP Server listening on http://localhost:${config.port}`);

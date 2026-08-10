@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { ecomClient } from '../services/ecomClient.js';
+import { toolRegistry } from '../registry/tool-registry.js';
 
 export function registerCustomerTools(server: McpServer) {
     /**
