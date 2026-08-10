@@ -48,7 +48,7 @@ export function registerMerchantResources(server: McpServer) {
 
             try {
                 const res = await ecomClient.listOrders({ page: 1, limit: 10 });
-                const list = res.data?.orders || res.data?.list || [];
+                const list = res.data?.orders || [];
                 orderStats = {
                     ...orderStats,
                     recent_orders_checked: list.length,

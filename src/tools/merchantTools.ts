@@ -47,7 +47,7 @@ export function registerMerchantTools(server: McpServer) {
         'get_product_details',
         'Get full product details including images, inventory stock, brand, category, and pricing.',
         {
-            productId: z.number().int().positive().describe('Numeric ID of the product'),
+            productId: z.union([z.number(), z.string()]).describe('Numeric ID of the product (e.g. 1, 234538) or Product Title (e.g. "Running Sports Shoes")'),
             lang: z.enum(['en', 'ar']).default('en').describe('Language for product names and descriptions'),
         },
         async (args) => {
@@ -262,6 +262,36 @@ export function registerMerchantTools(server: McpServer) {
                 return {
                     isError: true,
                     content: [{ type: 'text', text: `Error creating coupon: ${error.message}` }],
+                };
+            }
+        }
+    );
+
+    /**
+     * Tool 9: delete_promotion_coupon
+     * Delete or deactivate an active store offer, banner deal, or coupon code
+     */
+    server.tool(
+        'delete_promotion_coupon',
+        'Delete or deactivate an active store promotion, deal banner, or discount coupon code by ID or code.',
+        {
+            couponCodeOrId: z.union([z.string(), z.number()]).describe('Coupon code (e.g. SAVE20) or numeric promotion ID'),
+        },
+        async (args) => {
+            try {
+                const result = await ecomClient.deleteCoupon(args.couponCodeOrId);
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(result, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error deleting promotion/coupon: ${error.message}` }],
                 };
             }
         }

@@ -9,7 +9,7 @@ export function registerCustomerTools(server: McpServer) {
      */
     server.tool(
         'customer_search_products',
-        'Search products for Shoppingate customers by title, category, budget, or brand.',
+        'PRIMARY PRODUCT SEARCH TOOL: Use this tool to search and find any products, items, iPhone cases, electronics, shoes, apparel, and deals for Shoppingate store customers by budget or name.',
         {
             query: z.string().describe('Customer search term or product name (e.g. black Nike shoes, iPhone 15 case)'),
             limit: z.number().int().min(1).max(20).default(10).describe('Number of recommendations to return'),

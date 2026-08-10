@@ -3,205 +3,368 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shoppingate MCP Server — Browser Playground</title>
+    <title>Shoppingate AI Gateway — Interactive Playground</title>
     <style>
         :root {
-            --bg: #0f1419;
-            --surface: #1a2332;
-            --border: #2d3a4f;
-            --text: #e7ecf3;
-            --muted: #8b9cb3;
+            --bg: #0b0f17;
+            --surface: #151c28;
+            --surface-hover: #1c2638;
+            --border: #263347;
+            --text: #f0f4f8;
+            --muted: #94a3b8;
             --accent: #3b82f6;
-            --green: #22c55e;
-            --red: #ef4444;
+            --accent-hover: #2563eb;
+            --green: #10b981;
+            --purple: #8b5cf6;
             --amber: #f59e0b;
         }
         * { box-sizing: border-box; }
         body {
             margin: 0;
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
             color: var(--text);
             line-height: 1.5;
         }
         header {
-            padding: 1.25rem 1.5rem;
+            padding: 1.25rem 2rem;
             border-bottom: 1px solid var(--border);
             background: var(--surface);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        header h1 { margin: 0; font-size: 1.35rem; }
-        header p { margin: 0; color: var(--muted); font-size: 0.85rem; }
-        main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-        @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
-        section {
-            background: var(--surface);
+        header h1 { margin: 0; font-size: 1.35rem; font-weight: 700; color: #fff; }
+        header p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.85rem; }
+        main { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+        .layout { display: grid; grid-template-columns: 1fr 450px; gap: 1.5rem; }
+        @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-title.merchant { color: var(--accent); }
+        .section-title.customer { color: var(--purple); }
+
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        
+        .tool-card {
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.25rem;
-            margin-bottom: 1.25rem;
+            border-radius: 10px;
+            padding: 1rem;
+            background: var(--surface);
+            transition: border-color 0.2s;
         }
-        section h2 { margin: 0 0 1rem; font-size: 1.1rem; }
-        .row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; }
-        label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: var(--muted); flex: 1; min-width: 140px; }
+        .tool-card:hover { border-color: var(--accent); }
+        .tool-card h3 { margin: 0 0 0.35rem; font-size: 0.95rem; display: flex; justify-content: space-between; }
+        .tool-card .tag { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(59, 130, 246, 0.15); color: var(--accent); font-weight: 600; }
+        .tool-card.cust .tag { background: rgba(139, 92, 246, 0.15); color: var(--purple); }
+        .tool-card p { margin: 0 0 0.85rem; font-size: 0.8rem; color: var(--muted); height: 2.4rem; overflow: hidden; text-overflow: ellipsis; }
+
+        .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-end; margin-bottom: 0.5rem; }
+        label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.75rem; color: var(--muted); flex: 1; min-width: 100px; }
         input, select {
             background: var(--bg);
             border: 1px solid var(--border);
             color: var(--text);
-            padding: 0.45rem 0.65rem;
+            padding: 0.45rem 0.6rem;
             border-radius: 6px;
+            font-size: 0.8rem;
+            width: 100%;
         }
+        input:focus, select:focus { outline: none; border-color: var(--accent); }
         button {
             background: var(--accent);
             color: #fff;
             border: none;
-            padding: 0.55rem 1rem;
+            padding: 0.5rem 0.85rem;
             border-radius: 6px;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: background 0.15s;
+            width: 100%;
+            margin-top: 0.4rem;
         }
-        button:hover { opacity: 0.9; }
+        button:hover { background: var(--accent-hover); }
+        button.purple { background: var(--purple); }
+        button.purple:hover { background: #7c3aed; }
+        button.amber { background: var(--amber); }
+
         .badge {
-            font-size: 0.78rem;
-            padding: 0.2rem 0.55rem;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.65rem;
             border-radius: 999px;
             border: 1px solid var(--green);
-            background: rgba(34, 197, 94, 0.15);
+            background: rgba(16, 185, 129, 0.15);
             color: var(--green);
+            font-weight: 600;
         }
+
+        .output-panel {
+            position: sticky;
+            top: 5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            height: calc(100vh - 7rem);
+            display: flex;
+            flex-direction: column;
+        }
+        .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .output-header h2 { margin: 0; font-size: 1.05rem; }
         pre {
             background: var(--bg);
             border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 0.85rem;
-            overflow-x: auto;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-y: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             font-size: 0.8rem;
-            max-height: 450px;
+            flex: 1;
+            margin: 0;
+            color: #a7f3d0;
         }
-        .tool-card {
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 0.85rem;
-            margin-bottom: 0.85rem;
-            background: var(--bg);
+        .endpoints-list {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
         }
-        .tool-card h3 { margin: 0 0 0.5rem; font-size: 0.95rem; color: var(--accent); }
-        .tool-card p { margin: 0 0 0.75rem; font-size: 0.8rem; color: var(--muted); }
-        footer { margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem; color: var(--muted); font-size: 0.85rem; }
-        footer a { color: var(--accent); text-decoration: none; }
+        .endpoints-list a { color: var(--accent); text-decoration: none; }
     </style>
 </head>
 <body>
     <header>
         <div>
-            <h1>Shoppingate MCP Server — Browser Playground</h1>
-            <p>Test Merchant MCP Tools directly in Google Chrome / Browser</p>
+            <h1>Shoppingate AI Gateway — Interactive Playground</h1>
+            <p>Direct Browser Testing for All 15 Dual-Scope MCP Tools (Merchant & Customer)</p>
         </div>
         <span class="badge" id="status-badge">Server Online (Port 3005)</span>
     </header>
 
     <main>
-        <div class="grid">
+        <div class="layout">
             <div>
-                <section>
-                    <h2>Phase 1 Merchant Tools</h2>
-
-                    <!-- Tool 1 -->
+                <!-- Merchant Section -->
+                <h2 class="section-title merchant">🏪 Merchant Operation Tools (9 Tools)</h2>
+                <div class="tools-grid">
+                    
+                    <!-- 1. search_products -->
                     <div class="tool-card">
-                        <h3>1. search_products</h3>
-                        <p>Search product catalog with keyword & price range</p>
+                        <h3>search_products <span class="tag">MERCHANT</span></h3>
+                        <p>Search store catalog with keyword & price range</p>
                         <div class="row">
-                            <label>Query <input type="text" id="search-q" value="shoes" /></label>
-                            <label>Limit <input type="number" id="search-limit" value="5" /></label>
-                            <button type="button" onclick="runTool('search_products', { query: val('search-q'), limit: num('search-limit') })">Run Search</button>
+                            <label>Query <input type="text" id="m-search-q" value="shoes" /></label>
+                            <label>Limit <input type="number" id="m-search-lim" value="5" /></label>
                         </div>
+                        <button onclick="runTool('search_products', { query: val('m-search-q'), limit: num('m-search-lim') })">Run Tool</button>
                     </div>
 
-                    <!-- Tool 2 -->
+                    <!-- 2. get_product_details -->
                     <div class="tool-card">
-                        <h3>2. get_product_details</h3>
-                        <p>Fetch details for a specific product ID</p>
+                        <h3>get_product_details <span class="tag">MERCHANT</span></h3>
+                        <p>Fetch specifications & stock for product ID</p>
                         <div class="row">
-                            <label>Product ID <input type="number" id="detail-id" value="1" /></label>
-                            <button type="button" onclick="runTool('get_product_details', { productId: num('detail-id') })">Get Details</button>
+                            <label>Product ID <input type="number" id="m-detail-id" value="1" /></label>
                         </div>
+                        <button onclick="runTool('get_product_details', { productId: num('m-detail-id') })">Run Tool</button>
                     </div>
 
-                    <!-- Tool 3 -->
+                    <!-- 3. update_product_stock -->
                     <div class="tool-card">
-                        <h3>3. update_product_stock</h3>
-                        <p>Update inventory quantity for a product</p>
+                        <h3>update_product_stock <span class="tag">MERCHANT</span></h3>
+                        <p>Update inventory quantity & in-stock flag</p>
                         <div class="row">
-                            <label>Product ID <input type="number" id="stock-id" value="1" /></label>
-                            <label>New Stock <input type="number" id="stock-qty" value="50" /></label>
-                            <button type="button" onclick="runTool('update_product_stock', { productId: num('stock-id'), stock: num('stock-qty') })">Update Stock</button>
+                            <label>Product ID <input type="number" id="m-stock-id" value="1" /></label>
+                            <label>Stock Qty <input type="number" id="m-stock-qty" value="50" /></label>
                         </div>
+                        <button onclick="runTool('update_product_stock', { productId: num('m-stock-id'), stock: num('stock-qty') })">Run Tool</button>
                     </div>
 
-                    <!-- Tool 4 -->
+                    <!-- 4. list_merchant_orders -->
                     <div class="tool-card">
-                        <h3>4. list_merchant_orders</h3>
-                        <p>List store customer orders with status filter</p>
+                        <h3>list_merchant_orders <span class="tag">MERCHANT</span></h3>
+                        <p>Filter & list store customer orders by status</p>
                         <div class="row">
                             <label>Status
-                                <select id="order-status">
-                                    <option value="">All</option>
+                                <select id="m-order-st">
+                                    <option value="">All Statuses</option>
                                     <option value="pending">Pending</option>
                                     <option value="processing">Processing</option>
                                     <option value="shipped">Shipped</option>
                                     <option value="delivered">Delivered</option>
                                 </select>
                             </label>
-                            <button type="button" onclick="runTool('list_merchant_orders', { status: val('order-status') || undefined, limit: 5 })">List Orders</button>
                         </div>
+                        <button onclick="runTool('list_merchant_orders', { status: val('m-order-st') || undefined, limit: 5 })">Run Tool</button>
                     </div>
 
-                    <!-- Tool 5 -->
+                    <!-- 5. get_order_details -->
                     <div class="tool-card">
-                        <h3>5. create_coupon</h3>
-                        <p>Create a promotional discount coupon code</p>
+                        <h3>get_order_details <span class="tag">MERCHANT</span></h3>
+                        <p>Get line items, total amount & customer info</p>
                         <div class="row">
-                            <label>Code <input type="text" id="coupon-code" value="SUMMER2026" /></label>
-                            <label>Discount SAR <input type="number" id="coupon-val" value="20" /></label>
-                            <button type="button" onclick="runTool('create_coupon', { code: val('coupon-code'), discountType: 'fixed', discountValue: num('coupon-val') })">Create Coupon</button>
+                            <label>Order ID <input type="text" id="m-ord-id" value="ORD-2026-102" /></label>
                         </div>
+                        <button onclick="runTool('get_order_details', { orderId: val('m-ord-id') })">Run Tool</button>
                     </div>
-                </section>
+
+                    <!-- 6. update_order_status -->
+                    <div class="tool-card">
+                        <h3>update_order_status <span class="tag">MERCHANT</span></h3>
+                        <p>Update order status with merchant notes</p>
+                        <div class="row">
+                            <label>Order ID <input type="text" id="m-up-ord-id" value="102" /></label>
+                            <label>Status
+                                <select id="m-up-ord-st">
+                                    <option value="shipped">Shipped</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </label>
+                        </div>
+                        <button onclick="runTool('update_order_status', { orderId: val('m-up-ord-id'), status: val('m-up-ord-st'), notes: 'Carrier pickup complete' })">Run Tool</button>
+                    </div>
+
+                    <!-- 7. list_promotions -->
+                    <div class="tool-card">
+                        <h3>list_promotions <span class="tag">MERCHANT</span></h3>
+                        <p>List active store banners & coupon codes</p>
+                        <button onclick="runTool('list_promotions', {})">Run Tool</button>
+                    </div>
+
+                    <!-- 8. create_coupon -->
+                    <div class="tool-card">
+                        <h3>create_coupon <span class="tag">MERCHANT</span></h3>
+                        <p>Create percentage or fixed SAR coupon code</p>
+                        <div class="row">
+                            <label>Code <input type="text" id="m-coup-code" value="WELCOME20" /></label>
+                            <label>Discount SAR <input type="number" id="m-coup-val" value="20" /></label>
+                        </div>
+                        <button onclick="runTool('create_coupon', { code: val('m-coup-code'), discountType: 'fixed', discountValue: num('m-coup-val'), minOrderAmount: 100 })">Run Tool</button>
+                    </div>
+
+                    <!-- 9. delete_promotion_coupon -->
+                    <div class="tool-card">
+                        <h3>delete_promotion_coupon <span class="tag">MERCHANT</span></h3>
+                        <p>Delete or deactivate an active coupon or deal</p>
+                        <div class="row">
+                            <label>Coupon Code <input type="text" id="m-del-code" value="WELCOME20" /></label>
+                        </div>
+                        <button class="amber" onclick="runTool('delete_promotion_coupon', { couponCodeOrId: val('m-del-code') })">Delete Coupon</button>
+                    </div>
+
+                </div>
+
+                <!-- Customer Section -->
+                <h2 class="section-title customer">🛍️ Customer Super-App Tools (6 Tools)</h2>
+                <div class="tools-grid">
+
+                    <!-- 1. customer_search_products -->
+                    <div class="tool-card cust">
+                        <h3>customer_search_products <span class="tag">CUSTOMER</span></h3>
+                        <p>Search products by budget & keyword</p>
+                        <div class="row">
+                            <label>Query <input type="text" id="c-search-q" value="iPhone cases" /></label>
+                            <label>Max Price <input type="number" id="c-search-max" value="100" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('customer_search_products', { query: val('c-search-q'), maxPrice: num('c-search-max') })">Run Tool</button>
+                    </div>
+
+                    <!-- 2. get_recommendations -->
+                    <div class="tool-card cust">
+                        <h3>get_recommendations <span class="tag">CUSTOMER</span></h3>
+                        <p>Personalized Recommended, Trending & Deals</p>
+                        <div class="row">
+                            <label>User ID <input type="text" id="c-rec-uid" value="8543" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('get_recommendations', { userId: val('c-rec-uid'), lang: 'en' })">Run Tool</button>
+                    </div>
+
+                    <!-- 3. get_similar_products -->
+                    <div class="tool-card cust">
+                        <h3>get_similar_products <span class="tag">CUSTOMER</span></h3>
+                        <p>Find similar products for PDP recommendations</p>
+                        <div class="row">
+                            <label>Product ID <input type="number" id="c-sim-id" value="5" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('get_similar_products', { productId: num('c-sim-id') })">Run Tool</button>
+                    </div>
+
+                    <!-- 4. track_customer_order -->
+                    <div class="tool-card cust">
+                        <h3>track_customer_order <span class="tag">CUSTOMER</span></h3>
+                        <p>Track shipment status & delivery ETA</p>
+                        <div class="row">
+                            <label>Order ID <input type="text" id="c-track-id" value="102" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('track_customer_order', { orderId: val('c-track-id') })">Run Tool</button>
+                    </div>
+
+                    <!-- 5. check_visa_guidance -->
+                    <div class="tool-card cust">
+                        <h3>check_visa_guidance <span class="tag">CUSTOMER</span></h3>
+                        <p>Visa rules, fees & packages for travel</p>
+                        <div class="row">
+                            <label>Destination <input type="text" id="c-visa-dest" value="Turkey" /></label>
+                            <label>Passport <input type="text" id="c-visa-pass" value="Saudi Arabia" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('check_visa_guidance', { destinationCountry: val('c-visa-dest'), passportCountry: val('c-visa-pass') })">Run Tool</button>
+                    </div>
+
+                    <!-- 6. search_travel_insurance -->
+                    <div class="tool-card cust">
+                        <h3>search_travel_insurance <span class="tag">CUSTOMER</span></h3>
+                        <p>Search travel insurance coverage plans</p>
+                        <div class="row">
+                            <label>Destination <input type="text" id="c-ins-dest" value="Dubai, UAE" /></label>
+                            <label>Days <input type="number" id="c-ins-days" value="7" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('search_travel_insurance', { destination: val('c-ins-dest'), tripDurationDays: num('c-ins-days') })">Run Tool</button>
+                    </div>
+
+                </div>
             </div>
 
+            <!-- Output Column -->
             <div>
-                <section>
-                    <h2>Tool Response Output</h2>
-                    <pre id="output">Click any "Run" button on the left to test a tool live against the backend.</pre>
-                </section>
-
-                <section>
-                    <h2>Server Endpoints</h2>
-                    <p style="font-size:0.85rem;color:var(--muted)">Quick links to inspect schemas and server endpoints:</p>
-                    <ul>
-                        <li><a href="/health-check" target="_blank">GET /health-check</a> (Raw JSON Status)</li>
-                        <li><a href="/openapi.json" target="_blank">GET /openapi.json</a> (OpenAPI Schema for ChatGPT)</li>
-                        <li><a href="/sse" target="_blank">GET /sse</a> (Server-Sent Events Connection)</li>
-                    </ul>
-                </section>
+                <div class="output-panel">
+                    <div class="output-header">
+                        <h2>Tool Execution Console</h2>
+                        <button style="width:auto;margin:0;padding:0.3rem 0.6rem;background:var(--border)" onclick="document.getElementById('output').textContent='Console ready.'">Clear</button>
+                    </div>
+                    <pre id="output">Click any tool's "Run Tool" button on the left to test live execution against backend services.</pre>
+                    
+                    <div class="endpoints-list">
+                        <strong>Quick Endpoints:</strong>
+                        <ul>
+                            <li><a href="/health-check" target="_blank">GET /health-check</a> (Server Status)</li>
+                            <li><a href="/openapi.json" target="_blank">GET /openapi.json</a> (ChatGPT OpenAPI Schema)</li>
+                            <li><a href="/sse" target="_blank">GET /sse</a> (Server-Sent Events)</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <footer>
-            <p>Shoppingate MCP Server v1.0.0 · TypeScript Express Runtime</p>
-        </footer>
     </main>
 
     <script>
-        function val(id) { return document.getElementById(id).value.trim(); }
+        function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
         function num(id) { return Number(val(id)); }
 
         async function runTool(name, payload) {
             const out = document.getElementById('output');
-            out.textContent = 'Executing tool: ' + name + '...\nPayload: ' + JSON.stringify(payload, null, 2);
+            out.textContent = '🚀 Executing tool: ' + name + '...\n\nPayload:\n' + JSON.stringify(payload, null, 2);
             try {
                 const res = await fetch('/api/tools/' + name, {
                     method: 'POST',
@@ -209,9 +372,9 @@
                     body: JSON.stringify(payload),
                 });
                 const data = await res.json();
-                out.textContent = 'Status: ' + res.status + ' ' + res.statusText + '\n\n' + JSON.stringify(data, null, 2);
+                out.textContent = '✅ HTTP Status: ' + res.status + ' ' + res.statusText + '\n\nResponse Payload:\n' + JSON.stringify(data, null, 2);
             } catch (err) {
-                out.textContent = 'Execution Error: ' + err.message;
+                out.textContent = '❌ Execution Error: ' + err.message;
             }
         }
 

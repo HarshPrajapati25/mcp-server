@@ -168,6 +168,29 @@
           "200": { "description": "Coupon creation result" }
         }
       }
+    },
+    "/api/tools/delete_promotion_coupon": {
+      "post": {
+        "summary": "Delete or deactivate promotion or coupon",
+        "operationId": "deletePromotionCoupon",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["couponCodeOrId"],
+                "properties": {
+                  "couponCodeOrId": { "type": "string", "description": "Coupon code (e.g. SAVE20) or numeric promotion ID" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Coupon deletion result" }
+        }
+      }
     }
   }
 }

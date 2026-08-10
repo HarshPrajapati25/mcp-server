@@ -85,6 +85,9 @@ async function main() {
                     case 'create_coupon':
                         result = await ecomClient.createCoupon(req.body);
                         break;
+                    case 'delete_promotion_coupon':
+                        result = await ecomClient.deleteCoupon(req.body.couponCodeOrId || req.body.code || req.body.id);
+                        break;
                     default:
                         return res.status(404).json({ error: `Tool '${toolName}' not found` });
                 }
