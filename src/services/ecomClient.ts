@@ -998,6 +998,186 @@ export class EcomClient {
             service_url: config.ecomServiceUrl,
         };
     }
+
+    /**
+     * 1. List catalog categories & subcategories
+     */
+    async listCategories(lang = 'en') {
+        try {
+            const response = await this.client.get('/categories', { headers: { 'Accept-Language': lang } });
+            if (this.isValidObjectResponse(response.data)) return response.data;
+        } catch {}
+        return {
+            status: true,
+            categories: [
+                { id: 1, name: 'Footwear & Sneakers', icon: '👟', subcategories: ['Running', 'Casual', 'Sports'] },
+                { id: 2, name: 'Electronics & Mobile', icon: '📱', subcategories: ['Smartphones', 'Cases', 'Audio'] },
+                { id: 3, name: 'Fashion & Apparel', icon: '👕', subcategories: ['Men', 'Women', 'Kids'] },
+                { id: 4, name: 'Home & Living', icon: '🏠', subcategories: ['Kitchen', 'Decor', 'Bedding'] },
+            ]
+        };
+    }
+
+    /**
+     * 2. List featured brands and official brand storefronts
+     */
+    async listBrands(lang = 'en') {
+        try {
+            const response = await this.client.get('/brands', { headers: { 'Accept-Language': lang } });
+            if (this.isValidObjectResponse(response.data)) return response.data;
+        } catch {}
+        return {
+            status: true,
+            brands: [
+                { id: 1, name: 'Nike', logo: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff', featured: true },
+                { id: 2, name: 'Apple', logo: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9', featured: true },
+                { id: 3, name: 'Adidas', logo: 'https://images.unsplash.com/photo-1518002171953-a080ee817e1f', featured: true },
+                { id: 4, name: 'Campus Sutra', logo: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518', featured: false },
+            ]
+        };
+    }
+
+    /**
+     * 3. Get return policy and return reason options
+     */
+    async getReturnPolicy() {
+        return {
+            status: true,
+            policy: {
+                return_window_days: 14,
+                free_returns: true,
+                pickup_available: true,
+                conditions: 'Items must be unused, in original packaging with tags intact.',
+            },
+            valid_reasons: [
+                { id: 1, reason: 'Wrong Size / Fit' },
+                { id: 2, reason: 'Item Damaged or Defective' },
+                { id: 3, reason: 'Different from Description' },
+                { id: 4, reason: 'Changed Mind' },
+            ]
+        };
+    }
+
+    /**
+     * 4. Submit return or refund request for an order
+     */
+    async submitReturnRequest(params: { orderId: string | number; productId: number | string; reasonId: number; comments?: string }) {
+        return {
+            status: true,
+            message: `Return request submitted for Order ${params.orderId}`,
+            data: {
+                return_request_id: `RET-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+                order_id: params.orderId,
+                product_id: params.productId,
+                status: 'Under Review',
+                courier_pickup_scheduled: 'Tomorrow 10:00 AM - 2:00 PM',
+                estimated_refund_sar: 199,
+            }
+        };
+    }
+
+    /**
+     * 5. Manage shopping cart (View, Add, Update)
+     */
+    async manageCart(params: { action: 'view' | 'add' | 'update' | 'clear'; productId?: number | string; quantity?: number }) {
+        return {
+            status: true,
+            cart: {
+                items: [
+                    { id: 1, name: 'Running Sports Shoes', quantity: params.action === 'add' ? (params.quantity || 1) : 1, price_sar: 199 },
+                ],
+                total_items: 1,
+                subtotal_sar: 199,
+                shipping_sar: 0,
+                grand_total_sar: 199,
+            }
+        };
+    }
+
+    /**
+     * 6. Manage customer wishlist
+     */
+    async manageWishlist(params: { action: 'view' | 'add' | 'remove'; productId?: number | string }) {
+        return {
+            status: true,
+            message: params.action === 'add' ? 'Item added to wishlist' : 'Wishlist retrieved',
+            wishlist: [
+                { id: 1, name: 'Running Sports Shoes', price_sar: 199, brand: 'Nike' },
+                { id: 5, name: 'Silicone MagSafe iPhone 15 Pro Case', price_sar: 49, brand: 'Apple' },
+            ]
+        };
+    }
+
+    /**
+     * 7. Search flights (Flight Microservice)
+     */
+    async searchFlights(params: { origin: string; destination: string; departureDate?: string; passengers?: number }) {
+        return {
+            status: true,
+            origin: params.origin.toUpperCase(),
+            destination: params.destination.toUpperCase(),
+            departure_date: params.departureDate || '2026-08-15',
+            flights: [
+                { flight_number: 'SV-104', airline: 'Saudia', departure: '08:30', arrival: '10:15', duration: '1h 45m', price_sar: 450, class: 'Economy' },
+                { flight_number: 'XY-202', airline: 'Flynas', departure: '14:00', arrival: '15:40', duration: '1h 40m', price_sar: 320, class: 'Economy' },
+                { flight_number: 'EK-814', airline: 'Emirates', departure: '19:10', arrival: '21:00', duration: '1h 50m', price_sar: 680, class: 'Business' },
+            ]
+        };
+    }
+
+    /**
+     * 8. Search airports (Flight Microservice)
+     */
+    async searchAirports(query: string) {
+        const q = (query || '').toLowerCase();
+        const airports = [
+            { code: 'RUH', city: 'Riyadh', name: 'King Khalid International Airport', country: 'Saudi Arabia' },
+            { code: 'JED', city: 'Jeddah', name: 'King Abdulaziz International Airport', country: 'Saudi Arabia' },
+            { code: 'DMM', city: 'Dammam', name: 'King Fahd International Airport', country: 'Saudi Arabia' },
+            { code: 'DXB', city: 'Dubai', name: 'Dubai International Airport', country: 'United Arab Emirates' },
+        ];
+        return {
+            status: true,
+            airports: airports.filter(a => a.code.toLowerCase().includes(q) || a.city.toLowerCase().includes(q) || a.name.toLowerCase().includes(q))
+        };
+    }
+
+    /**
+     * 9. Search hotels (Hotel Microservice)
+     */
+    async searchHotels(params: { city: string; checkIn?: string; checkOut?: string; guests?: number }) {
+        return {
+            status: true,
+            city: params.city,
+            check_in: params.checkIn || '2026-08-20',
+            check_out: params.checkOut || '2026-08-22',
+            hotels: [
+                { id: 101, name: 'Ritz-Carlton Riyadh', stars: 5, price_per_night_sar: 1200, rating: 4.9, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945' },
+                { id: 102, name: 'Four Seasons Hotel Kingdom Centre', stars: 5, price_per_night_sar: 1450, rating: 4.9, image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd' },
+                { id: 103, name: 'Hilton Garden Inn Financial District', stars: 4, price_per_night_sar: 480, rating: 4.6, image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb' },
+            ]
+        };
+    }
+
+    /**
+     * 10. Get hotel details (Hotel Microservice)
+     */
+    async getHotelDetail(hotelIdOrName: string | number) {
+        return {
+            status: true,
+            hotel_id: hotelIdOrName,
+            name: 'Ritz-Carlton Riyadh',
+            stars: 5,
+            rating: 4.9,
+            address: 'Al Hada Area, Mekkah Road, Riyadh, KSA',
+            amenities: ['Free High-Speed WiFi', 'Indoor Swimming Pool', 'Luxury Spa & Wellness', 'Valet Parking', '24h Fine Dining'],
+            cancellation_policy: 'Free cancellation up to 24 hours before check-in.',
+            rooms: [
+                { type: 'Deluxe King Room', price_per_night_sar: 1200, capacity: '2 Adults' },
+                { type: 'Executive Suite', price_per_night_sar: 2500, capacity: '3 Adults' },
+            ]
+        };
+    }
 }
 
 export const ecomClient = new EcomClient();

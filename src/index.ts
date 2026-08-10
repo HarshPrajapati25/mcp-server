@@ -94,6 +94,36 @@ async function main() {
                     case 'get_product_reviews':
                         result = await ecomClient.getProductReviews({ productIdOrName: req.body.productIdOrName || req.body.productId || req.body.name, page: req.body.page, limit: req.body.limit });
                         break;
+                    case 'list_product_categories':
+                        result = await ecomClient.listCategories(req.body.lang);
+                        break;
+                    case 'list_brand_storefronts':
+                        result = await ecomClient.listBrands(req.body.lang);
+                        break;
+                    case 'get_return_policy_and_reasons':
+                        result = await ecomClient.getReturnPolicy();
+                        break;
+                    case 'submit_return_request':
+                        result = await ecomClient.submitReturnRequest(req.body);
+                        break;
+                    case 'manage_cart':
+                        result = await ecomClient.manageCart(req.body);
+                        break;
+                    case 'manage_wishlist':
+                        result = await ecomClient.manageWishlist(req.body);
+                        break;
+                    case 'search_flights':
+                        result = await ecomClient.searchFlights(req.body);
+                        break;
+                    case 'search_airports':
+                        result = await ecomClient.searchAirports(req.body.query || '');
+                        break;
+                    case 'search_hotels':
+                        result = await ecomClient.searchHotels(req.body);
+                        break;
+                    case 'get_hotel_details':
+                        result = await ecomClient.getHotelDetail(req.body.hotelIdOrName || req.body.id || req.body.name);
+                        break;
                     default:
                         return res.status(404).json({ error: `Tool '${toolName}' not found` });
                 }

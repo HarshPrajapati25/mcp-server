@@ -172,7 +172,7 @@
     <header>
         <div>
             <h1>Shoppingate AI Gateway — Interactive Playground</h1>
-            <p>Direct Browser Testing for All 16 Dual-Scope MCP Tools (Merchant & Customer)</p>
+            <p>Direct Browser Testing for All 27 Dual-Scope MCP Tools (Merchant & Customer)</p>
         </div>
         <span class="badge" id="status-badge">Server Online (Port 3005)</span>
     </header>
@@ -292,7 +292,7 @@
                 </div>
 
                 <!-- Customer Section -->
-                <h2 class="section-title customer">🛍️ Customer Super-App Tools (7 Tools)</h2>
+                <h2 class="section-title customer">🛍️ Customer Super-App Tools (18 Tools)</h2>
                 <div class="tools-grid">
 
                     <!-- 1. customer_search_products -->
@@ -367,6 +367,106 @@
                             <label>Days <input type="number" id="c-ins-days" value="7" /></label>
                         </div>
                         <button class="purple" onclick="runTool('search_travel_insurance', { destination: val('c-ins-dest'), tripDurationDays: num('c-ins-days') })">Run Tool</button>
+                    </div>
+
+                    <!-- 8. get_product_reviews -->
+                    <div class="tool-card cust">
+                        <h3>get_product_reviews <span class="tag">CUSTOMER</span></h3>
+                        <p>Star ratings, user feedback & reviews</p>
+                        <div class="row">
+                            <label>Product Name/ID <input type="text" id="c-rev-prod" value="Magnetic Leather Wallet iPhone Cover" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('get_product_reviews', { productIdOrName: val('c-rev-prod') })">Get Reviews</button>
+                    </div>
+
+                    <!-- 9. list_product_categories -->
+                    <div class="tool-card cust">
+                        <h3>list_product_categories <span class="tag">CUSTOMER</span></h3>
+                        <p>List store categories & subcategories</p>
+                        <button class="purple" onclick="runTool('list_product_categories', { lang: 'en' })">List Categories</button>
+                    </div>
+
+                    <!-- 10. list_brand_storefronts -->
+                    <div class="tool-card cust">
+                        <h3>list_brand_storefronts <span class="tag">CUSTOMER</span></h3>
+                        <p>Browse store brands & official storefronts</p>
+                        <button class="purple" onclick="runTool('list_brand_storefronts', { lang: 'en' })">List Brands</button>
+                    </div>
+
+                    <!-- 11. get_return_policy_and_reasons -->
+                    <div class="tool-card cust">
+                        <h3>get_return_policy_and_reasons <span class="tag">CUSTOMER</span></h3>
+                        <p>Store return windows, policies & valid reasons</p>
+                        <button class="purple" onclick="runTool('get_return_policy_and_reasons', {})">View Return Policy</button>
+                    </div>
+
+                    <!-- 12. submit_return_request -->
+                    <div class="tool-card cust">
+                        <h3>submit_return_request <span class="tag">CUSTOMER</span></h3>
+                        <p>Submit item return / refund request</p>
+                        <div class="row">
+                            <label>Order ID <input type="text" id="c-ret-ord" value="ORD-2026-102" /></label>
+                            <label>Product ID <input type="text" id="c-ret-prod" value="1" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('submit_return_request', { orderId: val('c-ret-ord'), productId: val('c-ret-prod'), reasonId: 1 })">Submit Return</button>
+                    </div>
+
+                    <!-- 13. manage_cart -->
+                    <div class="tool-card cust">
+                        <h3>manage_cart <span class="tag">CUSTOMER</span></h3>
+                        <p>View cart contents, add items or update qty</p>
+                        <div class="row">
+                            <label>Action <select id="c-cart-act"><option value="view">View</option><option value="add">Add</option></select></label>
+                        </div>
+                        <button class="purple" onclick="runTool('manage_cart', { action: val('c-cart-act') })">Manage Cart</button>
+                    </div>
+
+                    <!-- 14. manage_wishlist -->
+                    <div class="tool-card cust">
+                        <h3>manage_wishlist <span class="tag">CUSTOMER</span></h3>
+                        <p>Save products to customer wishlist</p>
+                        <button class="purple" onclick="runTool('manage_wishlist', { action: 'view' })">View Wishlist</button>
+                    </div>
+
+                    <!-- 15. search_flights -->
+                    <div class="tool-card cust">
+                        <h3>search_flights <span class="tag">CUSTOMER</span></h3>
+                        <p>Search flight tickets & schedules</p>
+                        <div class="row">
+                            <label>From <input type="text" id="c-fl-orig" value="RUH" /></label>
+                            <label>To <input type="text" id="c-fl-dest" value="JED" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('search_flights', { origin: val('c-fl-orig'), destination: val('c-fl-dest') })">Search Flights</button>
+                    </div>
+
+                    <!-- 16. search_airports -->
+                    <div class="tool-card cust">
+                        <h3>search_airports <span class="tag">CUSTOMER</span></h3>
+                        <p>Airport names & IATA code lookup</p>
+                        <div class="row">
+                            <label>Search <input type="text" id="c-air-q" value="Riyadh" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('search_airports', { query: val('c-air-q') })">Search Airports</button>
+                    </div>
+
+                    <!-- 17. search_hotels -->
+                    <div class="tool-card cust">
+                        <h3>search_hotels <span class="tag">CUSTOMER</span></h3>
+                        <p>Search luxury & boutique hotel stays</p>
+                        <div class="row">
+                            <label>City <input type="text" id="c-hot-city" value="Riyadh" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('search_hotels', { city: val('c-hot-city') })">Search Hotels</button>
+                    </div>
+
+                    <!-- 18. get_hotel_details -->
+                    <div class="tool-card cust">
+                        <h3>get_hotel_details <span class="tag">CUSTOMER</span></h3>
+                        <p>Room rates, amenities & policies</p>
+                        <div class="row">
+                            <label>Hotel Name/ID <input type="text" id="c-hot-id" value="Ritz-Carlton Riyadh" /></label>
+                        </div>
+                        <button class="purple" onclick="runTool('get_hotel_details', { hotelIdOrName: val('c-hot-id') })">Hotel Details</button>
                     </div>
 
                 </div>

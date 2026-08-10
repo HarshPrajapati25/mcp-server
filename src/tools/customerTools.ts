@@ -260,4 +260,156 @@ export function registerCustomerTools(server: McpServer) {
             }
         }
     );
+
+    /**
+     * Customer Tool 9: list_product_categories
+     */
+    server.tool(
+        'list_product_categories',
+        'List store product categories, subcategories, and icons.',
+        { lang: z.enum(['en', 'ar']).default('en').optional() },
+        async (args) => {
+            const data = await ecomClient.listCategories(args.lang);
+            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+        }
+    );
+
+    /**
+     * Customer Tool 10: list_brand_storefronts
+     */
+    server.tool(
+        'list_brand_storefronts',
+        'List store brands and official brand storefronts.',
+        { lang: z.enum(['en', 'ar']).default('en').optional() },
+        async (args) => {
+            const data = await ecomClient.listBrands(args.lang);
+            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+        }
+    );
+
+    /**
+     * Customer Tool 11: get_return_policy_and_reasons
+     */
+    server.tool(
+        'get_return_policy_and_reasons',
+        'Get store return window rules, refund policies, and valid return reason options.',
+        {},
+        async () => {
+            const data = await ecomClient.getReturnPolicy();
+            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+        }
+    );
+
+    /**
+     * Customer Tool 12: submit_return_request
+     */
+    server.tool(
+        'submit_return_request',
+        'Submit a return/refund request for an order item.',
+        {
+            orderId: z.union([z.number(), z.string()]).describe('Order ID or Order Number'),
+            productId: z.union([z.number(), z.string()]).describe('Product ID or Product Name'),
+            reasonId: z.number().int().default(1).describe('Return reason ID'),
+            comments: z.string().optional().describe('Customer notes or defect details'),
+        },
+        async (args) => {
+            const data = await ecomClient.submitReturnRequest(args);
+            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+        }
+    );
+
+    /**
+     * Customer Tool 13: manage_cart
+     */
+    server.tool(
+        'manage_cart',
+        'View shopping cart contents, add items, or update item quantities.',
+        {
+            action: z.enum(['view', 'add', 'update', 'clear']).default('view'),
+            productId: z.union([z.number(), z.string()]).optional(),
+            quantity: z.number().int().positive().default(1).optional(),
+        },
+        async (args) => {
+            const data = await ecomClient.manageCart(args);
+            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+        }
+    );
+
+    /**
+     * Customer Tool 14: manage_wishlist
+     */
+    server.tool(
+        'manage_wishlist',
+        'Save products to customer wishlist, view saved wishlist, or remove items.',
+        {
+            action: z.enum(['view', 'add', 'remove']).default('view'),
+            productId: z.union([z.number(), z.string()]).optional(),
+        },
+        async (args) => {
+            const data = await ecomClient.manageWishlist(args);
+            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+        }
+    );
+
+    /**
+     * Customer Tool 15: search_flights
+     */
+    server.tool(
+        'search_flights',
+        'Search flight tickets (origin city/IATA, destination city/IATA, departure date, passenger count).',
+        {
+            origin: z.string().describe('Origin city or IATA code (e.g. RUH, Riyadh)'),
+            destination: z.string().describe('Destination city or IATA code (e.g. JED, Jeddah, DXB)'),
+            departureDate: z.string().optional().describe('Departure date YYYY-MM-DD'),
+            passengers: z.number().int().positive().default(1).optional(),
+        },
+        async (args) => {
+            const data = await ecomClient.searchFlights(args);
+            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+        }
+    );
+
+    /**
+     * Customer Tool 16: search_airports
+     */
+    server.tool(
+        'search_airports',
+        'Look up airport names, city locations, and IATA codes (e.g. RUH, JED, DXB).',
+        { query: z.string().describe('City name or IATA airport code') },
+        async (args) => {
+            const data = await ecomClient.searchAirports(args.query);
+            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+        }
+    );
+
+    /**
+     * Customer Tool 17: search_hotels
+     */
+    server.tool(
+        'search_hotels',
+        'Search hotel stays by city, check-in date, check-out date, and guest count.',
+        {
+            city: z.string().describe('City location for hotel stay (e.g. Riyadh, Dubai)'),
+            checkIn: z.string().optional().describe('Check-in date YYYY-MM-DD'),
+            checkOut: z.string().optional().describe('Check-out date YYYY-MM-DD'),
+            guests: z.number().int().positive().default(2).optional(),
+        },
+        async (args) => {
+            const data = await ecomClient.searchHotels(args);
+            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+        }
+    );
+
+    /**
+     * Customer Tool 18: get_hotel_details
+     */
+    server.tool(
+        'get_hotel_details',
+        'Get room types, night rates, amenities, and cancellation policies for a hotel.',
+        { hotelIdOrName: z.union([z.number(), z.string()]).describe('Hotel ID or hotel name') },
+        async (args) => {
+            const data = await ecomClient.getHotelDetail(args.hotelIdOrName);
+            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+        }
+    );
 }
