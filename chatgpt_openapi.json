@@ -225,8 +225,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "action": { "type": "string", "enum": ["view", "add", "update", "clear"], "default": "view" },
+                  "action": { "type": "string", "enum": ["view", "add", "update", "remove", "clear"], "default": "view" },
                   "productId": { "type": "string" },
+                  "cartId": { "type": "integer" },
                   "quantity": { "type": "integer", "default": 1 }
                 }
               }
@@ -494,6 +495,40 @@
           }
         },
         "responses": { "200": { "description": "Workflow execution result" } }
+      }
+    },
+    "/api/tools/customer_login": {
+      "post": {
+        "summary": "Customer Login authentication",
+        "description": "Authenticate end-customer with phone or email and OTP/password to receive account profile and auth token.",
+        "operationId": "customerLogin",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": { "type": "string" },
+                  "email": { "type": "string" },
+                  "otp": { "type": "string" },
+                  "password": { "type": "string" },
+                  "name": { "type": "string" },
+                  "lang": { "type": "string", "default": "en" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "User session profile & JWT token" } }
+      }
+    },
+    "/api/tools/get_user_profile": {
+      "post": {
+        "summary": "Get authenticated user profile",
+        "description": "Retrieve current logged-in user profile details (Name, Email, Phone, Membership tier, Wallet balance).",
+        "operationId": "getUserProfile",
+        "responses": { "200": { "description": "User profile details" } }
       }
     }
   }
