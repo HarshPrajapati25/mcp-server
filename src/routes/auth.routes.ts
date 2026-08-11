@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 import { config } from '../config/env.js';
 
 const router = Router();
@@ -125,6 +127,18 @@ router.post('/merchant/callback', async (req: Request, res: Response) => {
             email: targetEmail,
             loggedInAt: Date.now()
         });
+
+        // Persist session to disk so Claude Desktop (Stdio mode child process) instantly sees active login
+        try {
+            const sessionPath = path.resolve(process.cwd(), '.merchant_session.json');
+            fs.writeFileSync(sessionPath, JSON.stringify({
+                token: liveJwtToken,
+                email: targetEmail,
+                loggedInAt: Date.now()
+            }, null, 2));
+        } catch (err: any) {
+            console.error('Error writing session to disk:', err.message);
+        }
 
         return res.json({
             status: true,

@@ -1,4 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
+import fs from 'fs';
+import path from 'path';
 import { config } from '../config/env.js';
 import { merchantSessionStore } from '../routes/auth.routes.js';
 
@@ -145,8 +147,22 @@ export class EcomClient {
             return { authorized: true };
         }
 
-        // Check active session in merchantSessionStore
-        const activeMerchantSession = merchantSessionStore.get('default-merchant-session') || Array.from(merchantSessionStore.values())[0];
+        // Check active session in merchantSessionStore OR disk session file (.merchant_session.json)
+        let activeMerchantSession = merchantSessionStore.get('default-merchant-session') || Array.from(merchantSessionStore.values())[0];
+        if (!activeMerchantSession) {
+            try {
+                const sessionPath = path.resolve(process.cwd(), '.merchant_session.json');
+                if (fs.existsSync(sessionPath)) {
+                    const sessionData = JSON.parse(fs.readFileSync(sessionPath, 'utf-8'));
+                    if (sessionData && sessionData.token) {
+                        activeMerchantSession = sessionData;
+                    }
+                }
+            } catch {
+                // ignore read errors
+            }
+        }
+
         if (activeMerchantSession) {
             return { authorized: true };
         }
