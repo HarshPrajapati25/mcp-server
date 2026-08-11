@@ -6,7 +6,9 @@ export function logger(message: string, category: LogCategory = 'info'): void {
   const timestamp = new Date().toISOString();
   const prefix = `[${timestamp}] [${category.toUpperCase()}]`;
   
-  if (category === 'error') {
+  if (process.env.TRANSPORT_MODE === 'stdio' || !process.env.TRANSPORT_MODE) {
+    console.error(`${prefix} ${message}`);
+  } else if (category === 'error') {
     console.error(`${prefix} ${message}`);
   } else if (category === 'warn') {
     console.warn(`${prefix} ${message}`);
