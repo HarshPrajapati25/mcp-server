@@ -15,6 +15,21 @@
       "description": "Production Dev Gateway"
     }
   ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Merchant JWT Token obtained from https://microservices.shoppinggate.app/sg-merchant/auth/login"
+      }
+    }
+  },
   "paths": {
     "/api/tools/search_products": {
       "post": {
@@ -494,6 +509,28 @@
           }
         },
         "responses": { "200": { "description": "Workflow execution result" } }
+      }
+    },
+    "/api/tools/merchant_login": {
+      "post": {
+        "summary": "Live Merchant Authentication",
+        "description": "Authenticate merchant with email and password on live Shoppingate Merchant Auth service.",
+        "operationId": "merchantLogin",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "default": "test@yopmail.com" },
+                  "password": { "type": "string", "default": "Password@123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Live authentication result" } }
       }
     }
   }

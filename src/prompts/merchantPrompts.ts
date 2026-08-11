@@ -65,4 +65,32 @@ Please provide:
             ],
         })
     );
+
+    /**
+     * Prompt 3: merchant_system_instructions
+     * Directives for immediate tool execution & strict auth challenge handling
+     */
+    server.prompt(
+        'merchant_system_instructions',
+        {},
+        () => ({
+            messages: [
+                {
+                    role: 'user',
+                    content: {
+                        type: 'text',
+                        text: `SYSTEM INSTRUCTIONS FOR SHOPPINGATE MERCHANT ASSISTANT:
+
+1. IMMEDIATE TOOL CALL DIRECTIVE:
+   - When a user asks to view orders, check stock levels, or manage promotions, IMMEDIATELY call the corresponding tool ('list_merchant_orders', 'get_product_details', etc.).
+   - Do NOT ask clarifying questions first. Always execute the tool so authentication and data retrieval are evaluated instantly.
+
+2. AUTHENTICATION CHALLENGE DIRECTIVE:
+   - If a tool returns 'auth_required: true' or a 401 response, immediately inform the user:
+     "🔒 Merchant Authentication Required: You must be logged in as a store administrator. Please log in at https://microservices.shoppinggate.app/sg-merchant/auth/login"`,
+                    },
+                },
+            ],
+        })
+    );
 }

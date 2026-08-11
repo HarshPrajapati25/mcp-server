@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { config } from '../config/env.js';
+import { merchantSessionStore } from '../routes/auth.routes.js';
 
 interface OrderRecord {
     id: number;
@@ -108,11 +109,18 @@ export class EcomClient {
             'get_similar_products',
             'check_visa_guidance',
             'search_travel_insurance',
-            'list_promotions'
+            'list_promotions',
+            'merchant_login'
         ];
 
         // 1. If public tool, allow execution without auth token
         if (publicTools.includes(toolName)) {
+            return { authorized: true };
+        }
+
+        // Check active session in merchantSessionStore
+        const activeMerchantSession = merchantSessionStore.get('default-merchant-session') || Array.from(merchantSessionStore.values())[0];
+        if (activeMerchantSession) {
             return { authorized: true };
         }
 
@@ -121,7 +129,7 @@ export class EcomClient {
 
         // 2. If unauthenticated guest calling protected tool, return Auth Challenge Payload
         if (isGuest) {
-            const isMerchantTool = ['update_product_stock', 'list_merchant_orders', 'get_order_details', 'update_order_status', 'create_coupon', 'delete_promotion_coupon'].includes(toolName);
+            const isMerchantTool = ['update_product_stock', 'list_merchant_orders', 'get_order_details', 'update_order_status', 'create_coupon', 'delete_promotion_coupon', 'run_merchant_workflow'].includes(toolName);
             return {
                 authorized: false,
                 response: {
@@ -129,11 +137,9 @@ export class EcomClient {
                     auth_required: true,
                     error: 'UNAUTHENTICATED_ACCESS_ATTEMPT',
                     message: isMerchantTool
-                        ? `🔒 Merchant Authentication Required: You must be logged in as a store administrator to run '${toolName}'.`
+                        ? `🔒 Merchant Authentication Required: You must be logged in as a store administrator to run '${toolName}'. Please click the authorization link below to sign in.`
                         : `🔒 Customer Authentication Required: Please log in to your Shoppingate account to access '${toolName}'.`,
-                    login_url: isMerchantTool
-                        ? 'https://merchant.shoppinggate.app/login'
-                        : 'https://shoppinggate.app/auth/login?redirect=mcp'
+                    login_url: 'https://microservices.shoppinggate.app/sg-merchant/auth/login'
                 }
             };
         }
@@ -840,6 +846,44 @@ export class EcomClient {
                 newArrivals: allProducts.map(p => this.sanitizeProduct(p)),
             },
         };
+    }
+
+    /**
+     * Live Merchant Login (Step 1 - Send OTP / Validate Credentials)
+     */
+    async loginMerchant(credentials: { email?: string; password?: string }) {
+        const email = credentials.email || 'test@yopmail.com';
+        const password = credentials.password || 'Password@123';
+
+        try {
+            const response = await this.client.post(
+                'https://microservices.shoppinggate.app/users/merchants/auth/send-otp',
+                { email, password },
+                {
+                    headers: {
+                        'x-api-key': config.serviceApiKey || 'O5Xpb9Lho$NooI@7@Q>ztCpGVCQ',
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            if (response.data) {
+                return {
+                    status: true,
+                    message: `Credentials validated for '${email}'. OTP sent to email.`,
+                    merchant_email: email,
+                    next_step: 'Verify OTP to complete live login',
+                    live_auth_endpoint: 'https://microservices.shoppinggate.app/sg-merchant/auth/login',
+                    data: response.data,
+                };
+            }
+        } catch (error: any) {
+            return {
+                status: false,
+                error: error.response?.data?.message || error.message,
+                message: `Failed to authenticate live merchant '${email}'`,
+            };
+        }
     }
 
     /**

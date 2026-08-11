@@ -8,6 +8,7 @@ import { createServer } from './server.js';
 import { config } from './config/env.js';
 
 import chatRoutes from './routes/chat.routes.js';
+import authRoutes from './routes/auth.routes.js';
 
 async function main() {
     if (process.env.TRANSPORT_MODE === 'stdio' || config.transportMode === 'stdio') {
@@ -28,6 +29,7 @@ async function main() {
         app.use(cors());
         app.use(express.json());
         app.use('/', chatRoutes);
+        app.use('/auth', authRoutes);
 
         const activeTransports = new Map<string, SSEServerTransport>();
         const publicPath = path.resolve(process.cwd(), 'public/index.html');
@@ -142,6 +144,9 @@ async function main() {
                             reply: typeof lastMsgNode?.content === 'string' ? lastMsgNode.content : JSON.stringify(lastMsgNode?.content),
                             order_result: workflowState.orderResult || null,
                         };
+                        break;
+                    case 'merchant_login':
+                        result = await ecomClient.loginMerchant(req.body);
                         break;
                     default:
                         return res.status(404).json({ error: `Tool '${toolName}' not found` });

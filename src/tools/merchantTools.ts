@@ -374,4 +374,35 @@ export function registerMerchantTools(server: McpServer) {
             }
         }
     );
+
+    /**
+     * Tool 11: merchant_login
+     * Authenticate merchant with live credentials on https://microservices.shoppinggate.app/sg-merchant/auth/login
+     */
+    server.tool(
+        'merchant_login',
+        'Authenticate merchant user with email and password credentials on live Shoppingate Merchant Auth service.',
+        {
+            email: z.string().email().optional().default('test@yopmail.com').describe('Merchant email address'),
+            password: z.string().optional().default('Password@123').describe('Merchant password'),
+        },
+        async (args) => {
+            try {
+                const result = await ecomClient.loginMerchant(args);
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(result, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error logging in merchant: ${error.message}` }],
+                };
+            }
+        }
+    );
 }
