@@ -10,6 +10,11 @@ import { config } from './config/env.js';
 import chatRoutes from './routes/chat.routes.js';
 
 async function main() {
+    if (process.env.TRANSPORT_MODE === 'stdio' || config.transportMode === 'stdio') {
+        // Redirect console.log to console.error so stdout remains 100% clean JSON-RPC for Claude Desktop
+        console.log = (...args: any[]) => console.error(...args);
+    }
+
     const server = createServer();
 
     if (config.transportMode === 'stdio') {
