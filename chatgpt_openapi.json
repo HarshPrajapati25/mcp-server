@@ -1,25 +1,24 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Shoppingate Merchant Tools API",
-    "description": "MCP Merchant actions for ChatGPT — manage products, stock levels, orders, and promotional coupons.",
+    "title": "Shoppingate Enterprise Super-App AI Gateway",
+    "description": "Dual-Scope MCP & OpenAPI Actions for ChatGPT & Claude — complete access to ECOM, FLIGHT, HOTEL, ORDERS, and RECOMMENDATION-ENGINE backends.",
     "version": "1.0.0"
   },
   "servers": [
     {
       "url": "http://localhost:3005",
-      "description": "Local MCP Server"
+      "description": "Local AI Gateway Server"
     },
     {
       "url": "https://microservices.shoppinggate.app/mcp",
-      "description": "Dev Gateway Server"
+      "description": "Production Dev Gateway"
     }
   ],
   "paths": {
     "/api/tools/search_products": {
       "post": {
         "summary": "Search catalog products",
-        "description": "Search products by keyword, category, price range, and stock status",
         "operationId": "searchProducts",
         "requestBody": {
           "required": true,
@@ -28,7 +27,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "query": { "type": "string", "description": "Search keyword" },
+                  "query": { "type": "string" },
                   "page": { "type": "integer", "default": 1 },
                   "limit": { "type": "integer", "default": 10 },
                   "minPrice": { "type": "number" },
@@ -39,14 +38,35 @@
             }
           }
         },
-        "responses": {
-          "200": { "description": "Successful search results" }
-        }
+        "responses": { "200": { "description": "Search results" } }
+      }
+    },
+    "/api/tools/customer_search_products": {
+      "post": {
+        "summary": "Customer product discovery",
+        "operationId": "customerSearchProducts",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": { "type": "string" },
+                  "maxPrice": { "type": "number" },
+                  "category": { "type": "string" },
+                  "lang": { "type": "string", "default": "en" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Filtered products" } }
       }
     },
     "/api/tools/get_product_details": {
       "post": {
-        "summary": "Get product details",
+        "summary": "Get product details by ID or title",
         "operationId": "getProductDetails",
         "requestBody": {
           "required": true,
@@ -54,23 +74,272 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["productId"],
                 "properties": {
-                  "productId": { "type": "integer", "description": "Numeric product ID" },
+                  "productId": { "type": "string", "description": "Product ID or Title" },
                   "lang": { "type": "string", "default": "en" }
                 }
               }
             }
           }
         },
-        "responses": {
-          "200": { "description": "Product details object" }
-        }
+        "responses": { "200": { "description": "Product details" } }
+      }
+    },
+    "/api/tools/check_shipping_eta": {
+      "post": {
+        "summary": "Check shipping delivery timeline and fee",
+        "operationId": "checkShippingEta",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "productIdOrName": { "type": "string" },
+                  "destinationCity": { "type": "string", "default": "Riyadh" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Delivery ETA and shipping cost" } }
+      }
+    },
+    "/api/tools/get_product_reviews": {
+      "post": {
+        "summary": "Get star ratings and customer reviews",
+        "operationId": "getProductReviews",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "productIdOrName": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Product reviews" } }
+      }
+    },
+    "/api/tools/track_customer_order": {
+      "post": {
+        "summary": "Track customer orders by Order ID or User ID",
+        "description": "Track delivery status, shipment updates, or look up customer orders by Customer User ID (e.g. 8362, 8543) or Order ID (e.g. ORD-2026-102, 102).",
+        "operationId": "trackCustomerOrder",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderId": { "type": "string", "description": "Order ID (e.g. ORD-2026-102) or Customer User ID (e.g. 8362, 8543)" },
+                  "userId": { "type": "string", "description": "Customer User ID (e.g. 8362, 8543)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Tracking status" } }
+      }
+    },
+    "/api/tools/list_product_categories": {
+      "post": {
+        "summary": "List product categories",
+        "operationId": "listProductCategories",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "lang": { "type": "string", "default": "en" } }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Store categories" } }
+      }
+    },
+    "/api/tools/list_brand_storefronts": {
+      "post": {
+        "summary": "List official brand storefronts",
+        "operationId": "listBrandStorefronts",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "lang": { "type": "string", "default": "en" } }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Brand list" } }
+      }
+    },
+    "/api/tools/get_return_policy_and_reasons": {
+      "post": {
+        "summary": "View return policy and valid reasons",
+        "operationId": "getReturnPolicyAndReasons",
+        "responses": { "200": { "description": "Return policy details" } }
+      }
+    },
+    "/api/tools/submit_return_request": {
+      "post": {
+        "summary": "Submit order return or refund request",
+        "operationId": "submitReturnRequest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderId": { "type": "string" },
+                  "productId": { "type": "string" },
+                  "reasonId": { "type": "integer", "default": 1 },
+                  "comments": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Return request confirmation" } }
+      }
+    },
+    "/api/tools/manage_cart": {
+      "post": {
+        "summary": "View or update customer shopping cart",
+        "operationId": "manageCart",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": { "type": "string", "enum": ["view", "add", "update", "clear"], "default": "view" },
+                  "productId": { "type": "string" },
+                  "quantity": { "type": "integer", "default": 1 }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Cart contents" } }
+      }
+    },
+    "/api/tools/manage_wishlist": {
+      "post": {
+        "summary": "View or update customer wishlist",
+        "operationId": "manageWishlist",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": { "type": "string", "enum": ["view", "add", "remove"], "default": "view" },
+                  "productId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Wishlist contents" } }
+      }
+    },
+    "/api/tools/search_flights": {
+      "post": {
+        "summary": "Search flight tickets",
+        "operationId": "searchFlights",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "origin": { "type": "string" },
+                  "destination": { "type": "string" },
+                  "departureDate": { "type": "string" },
+                  "passengers": { "type": "integer", "default": 1 }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Flight search results" } }
+      }
+    },
+    "/api/tools/search_airports": {
+      "post": {
+        "summary": "Airport and IATA code lookup",
+        "operationId": "searchAirports",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "query": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Matching airports" } }
+      }
+    },
+    "/api/tools/search_hotels": {
+      "post": {
+        "summary": "Search hotel stays",
+        "operationId": "searchHotels",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "city": { "type": "string" },
+                  "guests": { "type": "integer", "default": 2 }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Hotel list" } }
+      }
+    },
+    "/api/tools/get_hotel_details": {
+      "post": {
+        "summary": "Get hotel room rates and amenities",
+        "operationId": "getHotelDetails",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "hotelIdOrName": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Hotel details" } }
       }
     },
     "/api/tools/update_product_stock": {
       "post": {
-        "summary": "Update product stock quantity",
+        "summary": "Update product inventory stock",
         "operationId": "updateProductStock",
         "requestBody": {
           "required": true,
@@ -88,14 +357,13 @@
             }
           }
         },
-        "responses": {
-          "200": { "description": "Stock update confirmation" }
-        }
+        "responses": { "200": { "description": "Stock update confirmation" } }
       }
     },
     "/api/tools/list_merchant_orders": {
       "post": {
-        "summary": "List merchant customer orders",
+        "summary": "List merchant store orders (Admin Only)",
+        "description": "Merchant Admin Tool ONLY: List store-wide customer orders. Requires store administrator authentication.",
         "operationId": "listMerchantOrders",
         "requestBody": {
           "required": false,
@@ -104,23 +372,37 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "page": { "type": "integer", "default": 1 },
-                  "limit": { "type": "integer", "default": 10 },
-                  "status": { "type": "string", "enum": ["pending", "processing", "shipped", "delivered", "cancelled"] },
-                  "search": { "type": "string" }
+                  "status": { "type": "string" },
+                  "limit": { "type": "integer", "default": 10 }
                 }
               }
             }
           }
         },
-        "responses": {
-          "200": { "description": "List of orders" }
-        }
+        "responses": { "200": { "description": "Orders list" } }
+      }
+    },
+    "/api/tools/get_order_details": {
+      "post": {
+        "summary": "Get order details for merchant",
+        "operationId": "getOrderDetails",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "orderId": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Order details" } }
       }
     },
     "/api/tools/update_order_status": {
       "post": {
-        "summary": "Update order fulfillment status",
+        "summary": "Update order status",
         "operationId": "updateOrderStatus",
         "requestBody": {
           "required": true,
@@ -130,17 +412,22 @@
                 "type": "object",
                 "required": ["orderId", "status"],
                 "properties": {
-                  "orderId": { "type": "integer" },
-                  "status": { "type": "string", "enum": ["pending", "processing", "shipped", "delivered", "cancelled"] },
+                  "orderId": { "type": "string" },
+                  "status": { "type": "string" },
                   "notes": { "type": "string" }
                 }
               }
             }
           }
         },
-        "responses": {
-          "200": { "description": "Order status update result" }
-        }
+        "responses": { "200": { "description": "Status update confirmation" } }
+      }
+    },
+    "/api/tools/list_promotions": {
+      "post": {
+        "summary": "List store promotions and coupons",
+        "operationId": "listPromotions",
+        "responses": { "200": { "description": "Promotions list" } }
       }
     },
     "/api/tools/create_coupon": {
@@ -164,14 +451,12 @@
             }
           }
         },
-        "responses": {
-          "200": { "description": "Coupon creation result" }
-        }
+        "responses": { "200": { "description": "Coupon creation result" } }
       }
     },
     "/api/tools/delete_promotion_coupon": {
       "post": {
-        "summary": "Delete or deactivate promotion or coupon",
+        "summary": "Delete or deactivate coupon",
         "operationId": "deletePromotionCoupon",
         "requestBody": {
           "required": true,
@@ -179,17 +464,12 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["couponCodeOrId"],
-                "properties": {
-                  "couponCodeOrId": { "type": "string", "description": "Coupon code (e.g. SAVE20) or numeric promotion ID" }
-                }
+                "properties": { "couponCodeOrId": { "type": "string" } }
               }
             }
           }
         },
-        "responses": {
-          "200": { "description": "Coupon deletion result" }
-        }
+        "responses": { "200": { "description": "Coupon deletion result" } }
       }
     }
   }

@@ -109,13 +109,13 @@ export function registerCustomerTools(server: McpServer) {
 
     /**
      * Customer Tool 4: track_customer_order
-     * Track delivery status of a customer order
+     * Track delivery status, shipment updates, or look up orders by Customer User ID or Order ID.
      */
     server.tool(
         'track_customer_order',
-        'Track the delivery status and shipping updates for a customer order.',
+        'Track delivery status, shipment updates, or look up customer orders by Customer User ID (e.g. 8362, 8543) or Order ID (e.g. ORD-2026-102, 102).',
         {
-            orderId: z.union([z.number().int().positive(), z.string()]).describe('Customer order ID'),
+            orderId: z.union([z.number(), z.string()]).describe('Customer Order ID (e.g. ORD-2026-102, 102) OR Customer User ID (e.g. 8362, 8543)'),
         },
         async (args) => {
             try {

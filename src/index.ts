@@ -100,7 +100,7 @@ async function main() {
                         result = await ecomClient.getHomeRecommendations(req.body.userId, req.body.lang);
                         break;
                     case 'track_customer_order':
-                        result = await ecomClient.trackCustomerOrder(req.body.orderId);
+                        result = await ecomClient.trackCustomerOrder(req.body.orderId || req.body.orderIdOrUserId || req.body.userId || req.body.id);
                         break;
                     case 'update_product_stock':
                         result = await ecomClient.updateProductStock(req.body.productId, req.body.stock, req.body.inStock);
