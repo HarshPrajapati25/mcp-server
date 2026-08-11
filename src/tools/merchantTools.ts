@@ -1,7 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import { HumanMessage } from '@langchain/core/messages';
 import { ecomClient } from '../services/ecomClient.js';
 import { toolRegistry } from '../registry/tool-registry.js';
+import { agentGraph } from '../agent/graph.js';
 
 export function registerMerchantTools(server: McpServer) {
     toolRegistry.registerTool({
@@ -312,6 +314,62 @@ export function registerMerchantTools(server: McpServer) {
                 return {
                     isError: true,
                     content: [{ type: 'text', text: `Error deleting promotion/coupon: ${error.message}` }],
+                };
+            }
+        }
+    );
+
+    /**
+     * Tool 10: run_merchant_workflow
+     * Execute LangGraph state machine autonomous agent workflow for merchant operations
+     */
+    server.tool(
+        'run_merchant_workflow',
+        'Execute autonomous LangGraph agent workflow engine for multi-step merchant store operations, inventory routing, and order processing.',
+        {
+            instruction: z.string().describe('Natural language operational instruction or task for the merchant workflow engine'),
+            threadId: z.string().optional().describe('Optional persistent thread ID for stateful agent graph memory'),
+            approvalStatus: z.enum(['approved', 'rejected', 'pending']).optional().describe('Approval status for human-in-the-loop checkpoint decisions'),
+        },
+        async (args) => {
+            try {
+                const threadId = args.threadId || `merchant-thread-${Date.now()}`;
+                const config = { configurable: { thread_id: threadId } };
+                const inputs: any = {
+                    messages: [new HumanMessage({ content: args.instruction })],
+                    userId: process.env.X_USER_ID || 'merchant_42',
+                    authToken: process.env.AUTH_TOKEN || 'Bearer merch_42_admin',
+                };
+                if (args.approvalStatus) {
+                    inputs.approvalStatus = args.approvalStatus;
+                }
+
+                const finalState = await agentGraph.invoke(inputs, config);
+                const lastMsg = finalState.messages[finalState.messages.length - 1];
+                const replyText = typeof lastMsg?.content === 'string' ? lastMsg.content : JSON.stringify(lastMsg?.content);
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify({
+                                status: finalState.approvalRequired ? 'approval_required' : 'success',
+                                thread_id: threadId,
+                                intent_routed: finalState.intent,
+                                reply: replyText,
+                                order_result: finalState.orderResult || null,
+                                state_summary: {
+                                    items_count: finalState.cart?.items?.length || 0,
+                                    checkout_summary: finalState.checkoutData || null
+                                }
+                            }, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error running LangGraph merchant workflow: ${error.message}` }],
                 };
             }
         }

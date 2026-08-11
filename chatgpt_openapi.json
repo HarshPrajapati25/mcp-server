@@ -471,6 +471,30 @@
         },
         "responses": { "200": { "description": "Coupon deletion result" } }
       }
+    },
+    "/api/tools/run_merchant_workflow": {
+      "post": {
+        "summary": "Execute LangGraph autonomous agent workflow",
+        "description": "Execute autonomous LangGraph agent workflow engine for multi-step merchant store operations, inventory routing, and order processing.",
+        "operationId": "runMerchantWorkflow",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["instruction"],
+                "properties": {
+                  "instruction": { "type": "string", "description": "Natural language operational instruction or task" },
+                  "threadId": { "type": "string" },
+                  "approvalStatus": { "type": "string", "enum": ["approved", "rejected", "pending"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Workflow execution result" } }
+      }
     }
   }
 }

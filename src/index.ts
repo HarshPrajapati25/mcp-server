@@ -123,6 +123,26 @@ async function main() {
                     case 'delete_promotion_coupon':
                         result = await ecomClient.deleteCoupon(req.body.couponCodeOrId || req.body.code || req.body.id);
                         break;
+                    case 'run_merchant_workflow':
+                        const { agentGraph } = await import('./agent/graph.js');
+                        const { HumanMessage } = await import('@langchain/core/messages');
+                        const threadId = req.body.threadId || `merchant-thread-${Date.now()}`;
+                        const workflowInputs: any = {
+                            messages: req.body.instruction ? [new HumanMessage({ content: req.body.instruction })] : [],
+                            userId: req.headers['x-user-id'] || 'merchant_42',
+                            authToken: req.headers.authorization || 'Bearer merch_42_admin',
+                        };
+                        if (req.body.approvalStatus) workflowInputs.approvalStatus = req.body.approvalStatus;
+                        const workflowState = await agentGraph.invoke(workflowInputs, { configurable: { thread_id: threadId } });
+                        const lastMsgNode = workflowState.messages[workflowState.messages.length - 1];
+                        result = {
+                            status: workflowState.approvalRequired ? 'approval_required' : 'success',
+                            thread_id: threadId,
+                            intent_routed: workflowState.intent,
+                            reply: typeof lastMsgNode?.content === 'string' ? lastMsgNode.content : JSON.stringify(lastMsgNode?.content),
+                            order_result: workflowState.orderResult || null,
+                        };
+                        break;
                     default:
                         return res.status(404).json({ error: `Tool '${toolName}' not found` });
                 }
