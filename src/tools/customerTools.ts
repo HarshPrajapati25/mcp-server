@@ -328,11 +328,12 @@ export function registerCustomerTools(server: McpServer) {
      */
     server.tool(
         'manage_cart',
-        'View shopping cart contents, add items, or update item quantities.',
+        'PRIMARY CART TOOL: View shopping cart contents, add items, update quantities, remove specific items, or clear cart.',
         {
-            action: z.enum(['view', 'add', 'update', 'clear']).default('view'),
-            productId: z.union([z.number(), z.string()]).optional(),
-            quantity: z.number().int().positive().default(1).optional(),
+            action: z.enum(['view', 'add', 'update', 'remove', 'clear']).default('view').describe('Cart action: view, add item, update quantity, remove specific item, or clear entire cart'),
+            productId: z.union([z.number(), z.string()]).optional().describe('Product ID or product title to add/update/remove'),
+            cartId: z.number().int().optional().describe('Cart item ID to remove or update'),
+            quantity: z.number().int().min(0).default(1).optional().describe('Item quantity'),
         },
         async (args) => {
             const authCheck = ecomClient.validateToolAuth('manage_cart');
@@ -423,6 +424,69 @@ export function registerCustomerTools(server: McpServer) {
         async (args) => {
             const data = await ecomClient.getHotelDetail(args.hotelIdOrName);
             return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+        }
+    );
+
+    /**
+     * Customer Tool 19: customer_login
+     * Authenticate customer account using phone number or email and OTP/password.
+     */
+    server.tool(
+        'customer_login',
+        'PRIMARY LOGIN TOOL: Log in customer using phone number or email and OTP/password to access profile, name, email, and cart.',
+        {
+            phone: z.string().optional().describe('Customer phone number (e.g. 512345670, +966512345670)'),
+            email: z.string().optional().describe('Customer email address'),
+            otp: z.string().optional().describe('One-time passcode (OTP) (e.g. 123456)'),
+            password: z.string().optional().describe('Customer password'),
+            name: z.string().optional().describe('Customer full name'),
+            lang: z.enum(['en', 'ar']).default('en').optional().describe('Response language'),
+        },
+        async (args) => {
+            try {
+                const data = await ecomClient.customerLogin(args);
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(data, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error logging in customer: ${error.message}` }],
+                };
+            }
+        }
+    );
+
+    /**
+     * Customer Tool 20: get_user_profile
+     * Fetch current customer user profile (Name, Email, Phone, Membership Tier, Wallet Balance).
+     */
+    server.tool(
+        'get_user_profile',
+        'Get authenticated customer profile details including real name, email, phone, membership tier, and wallet balance.',
+        {},
+        async () => {
+            try {
+                const data = await ecomClient.getUserProfile();
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(data, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error fetching user profile: ${error.message}` }],
+                };
+            }
         }
     );
 }
