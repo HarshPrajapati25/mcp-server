@@ -147,6 +147,7 @@ async function main() {
                         break;
                     case 'merchant_login':
                         result = await ecomClient.loginMerchant(req.body);
+                        break;
                     case 'customer_login':
                         result = await ecomClient.customerLogin(req.body);
                         break;
