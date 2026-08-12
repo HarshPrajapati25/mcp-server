@@ -489,4 +489,79 @@ export function registerCustomerTools(server: McpServer) {
             }
         }
     );
+
+    /**
+     * Customer Tool 21: place_order_and_checkout
+     * Place order from customer cart and process payment (Credit Card, Tamara, Apple Pay, Wallet)
+     */
+    server.tool(
+        'place_order_and_checkout',
+        'PRIMARY CHECKOUT & PAYMENT TOOL: Place order from customer cart and execute payment using Card, Tamara BNPL, Apple Pay, or Wallet balance.',
+        {
+            paymentType: z.number().int().min(1).max(4).default(1).optional().describe('Payment type: 1=>Card/Credit, 2=>Tamara BNPL, 3=>Apple Pay, 4=>Wallet Balance'),
+            paymentCardId: z.string().optional().describe('Card ID if paying by card'),
+            transactionId: z.string().optional().describe('Transaction ID if paying via Tamara/Apple Pay'),
+            isWalletIncluded: z.boolean().default(false).optional().describe('Include wallet balance in payment'),
+            deliveryAddressId: z.number().int().default(74).optional().describe('Delivery address ID'),
+            deliveryInstruction: z.string().optional().describe('Special delivery instructions'),
+            promocodeId: z.number().int().optional().describe('Promo coupon code ID'),
+        },
+        async (args) => {
+            const authCheck = ecomClient.validateToolAuth('place_order_and_checkout');
+            if (!authCheck.authorized) {
+                return { content: [{ type: 'text', text: JSON.stringify(authCheck.response, null, 2) }] };
+            }
+            try {
+                const data = await ecomClient.placeOrder(args);
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(data, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error placing order: ${error.message}` }],
+                };
+            }
+        }
+    );
+
+    /**
+     * Customer Tool 22: cancel_customer_order
+     * Cancel an order and initiate automatic payment refund
+     */
+    server.tool(
+        'cancel_customer_order',
+        'Cancel a customer order and initiate automatic refund to wallet or payment card.',
+        {
+            orderId: z.union([z.number(), z.string()]).describe('Order ID or Order Number to cancel'),
+            reason: z.string().optional().describe('Reason for cancellation'),
+        },
+        async (args) => {
+            const authCheck = ecomClient.validateToolAuth('cancel_customer_order');
+            if (!authCheck.authorized) {
+                return { content: [{ type: 'text', text: JSON.stringify(authCheck.response, null, 2) }] };
+            }
+            try {
+                const data = await ecomClient.cancelCustomerOrder(args.orderId, args.reason);
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(data, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error cancelling order: ${error.message}` }],
+                };
+            }
+        }
+    );
 }

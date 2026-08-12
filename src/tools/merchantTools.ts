@@ -377,14 +377,15 @@ export function registerMerchantTools(server: McpServer) {
 
     /**
      * Tool 11: merchant_login
-     * Authenticate merchant with live credentials on https://microservices.shoppinggate.app/sg-merchant/auth/login
+     * Authenticate merchant user or get Merchant Portal Login URL (https://microservices.shoppinggate.app/sg-merchant/auth/login)
      */
     server.tool(
         'merchant_login',
-        'Authenticate merchant user with email and password credentials on live Shoppingate Merchant Auth service.',
+        'PRIMARY MERCHANT LOGIN TOOL: Get official Shoppingate Merchant Portal Web Login URL (https://microservices.shoppinggate.app/sg-merchant/auth/login) or authenticate merchant account via email & password/OTP.',
         {
-            email: z.string().email().optional().default('test@yopmail.com').describe('Merchant email address'),
-            password: z.string().optional().default('Password@123').describe('Merchant password'),
+            email: z.string().email().optional().describe('Merchant email address'),
+            password: z.string().optional().describe('Merchant password'),
+            otp: z.string().optional().describe('Merchant login OTP code'),
         },
         async (args) => {
             try {
@@ -400,7 +401,157 @@ export function registerMerchantTools(server: McpServer) {
             } catch (error: any) {
                 return {
                     isError: true,
-                    content: [{ type: 'text', text: `Error logging in merchant: ${error.message}` }],
+                    content: [{ type: 'text', text: `Error processing merchant login: ${error.message}` }],
+                };
+            }
+        }
+    );
+
+    /**
+     * Tool 12: create_product / add_product
+     * Create and publish a new product listing to the Shoppingate store catalog
+     */
+    server.tool(
+        'create_product',
+        'PRIMARY MERCHANT TOOL: Create and publish a new product listing to the Shoppingate store catalog with name, price, stock, description, SKU, and image URL.',
+        {
+            name: z.string().describe('Product name / title'),
+            price: z.number().positive().describe('Product price in SAR'),
+            stock: z.number().int().min(0).default(10).optional().describe('Initial stock quantity'),
+            description: z.string().optional().describe('Product description'),
+            categoryId: z.number().int().optional().describe('Category ID'),
+            brandName: z.string().optional().describe('Brand name'),
+            sku: z.string().optional().describe('Merchant SKU code'),
+            imageUrl: z.string().url().optional().describe('Main product image URL'),
+        },
+        async (args) => {
+            try {
+                const data = await ecomClient.createProduct({
+                    name: args.name,
+                    price: args.price,
+                    stock: args.stock,
+                    description: args.description,
+                    category_id: args.categoryId,
+                    brand_name: args.brandName,
+                    merchant_sku: args.sku,
+                    image: args.imageUrl
+                });
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(data, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error creating product: ${error.message}` }],
+                };
+            }
+        }
+    );
+
+    /**
+     * Tool 13: get_merchant_profile
+     * Retrieve logged-in merchant account & store details (Merchant Name, Store Title, Email)
+     */
+    server.tool(
+        'get_merchant_profile',
+        'PRIMARY MERCHANT PROFILE TOOL: Get authenticated merchant account and store profile details (Store Name, Merchant Name, Email, Phone, Store ID).',
+        {},
+        async () => {
+            try {
+                const data = await ecomClient.getMerchantProfile();
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(data, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error fetching merchant profile: ${error.message}` }],
+                };
+            }
+        }
+    );
+
+    /**
+     * Tool 14: update_product
+     * Update an existing product listing (name, price, stock, description, SKU, image URL)
+     */
+    server.tool(
+        'update_product',
+        'PRIMARY MERCHANT TOOL: Update an existing product listing in the store catalog (change title, price, stock, description, category, SKU, image).',
+        {
+            productId: z.number().int().positive().describe('Numeric ID of the product to update'),
+            name: z.string().optional().describe('New product name / title'),
+            price: z.number().positive().optional().describe('New price in SAR'),
+            stock: z.number().int().min(0).optional().describe('New inventory stock level'),
+            description: z.string().optional().describe('New description'),
+            categoryId: z.number().int().optional().describe('Category ID'),
+            brandName: z.string().optional().describe('Brand name'),
+            sku: z.string().optional().describe('Merchant SKU'),
+            imageUrl: z.string().url().optional().describe('New image URL'),
+        },
+        async (args) => {
+            try {
+                const data = await ecomClient.updateProduct(args);
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(data, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error updating product: ${error.message}` }],
+                };
+            }
+        }
+    );
+
+    /**
+     * Tool 15: get_merchant_products
+     * Get / list all products listed in the merchant store catalog
+     */
+    server.tool(
+        'get_merchant_products',
+        'PRIMARY MERCHANT TOOL: Fetch and list all products catalog items for the merchant store with search, category, and pagination filters.',
+        {
+            page: z.number().int().min(1).default(1).optional().describe('Page number'),
+            limit: z.number().int().min(1).max(50).default(10).optional().describe('Items per page'),
+            search: z.string().optional().describe('Search keyword, title, or SKU'),
+            categoryId: z.number().int().optional().describe('Category filter ID'),
+        },
+        async (args) => {
+            try {
+                const data = await ecomClient.getMerchantProducts({
+                    page: args.page,
+                    limit: args.limit,
+                    search: args.search,
+                    categoryId: args.categoryId
+                });
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(data, null, 2),
+                        },
+                    ],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: 'text', text: `Error fetching merchant products: ${error.message}` }],
                 };
             }
         }

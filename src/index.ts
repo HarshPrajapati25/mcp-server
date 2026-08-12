@@ -107,6 +107,19 @@ async function main() {
                     case 'update_product_stock':
                         result = await ecomClient.updateProductStock(req.body.productId, req.body.stock, req.body.inStock);
                         break;
+                    case 'create_product':
+                    case 'add_product':
+                        result = await ecomClient.createProduct(req.body);
+                        break;
+                    case 'update_product':
+                        result = await ecomClient.updateProduct(req.body);
+                        break;
+                    case 'get_merchant_products':
+                        result = await ecomClient.getMerchantProducts(req.body);
+                        break;
+                    case 'get_merchant_profile':
+                        result = await ecomClient.getMerchantProfile();
+                        break;
                     case 'list_merchant_orders':
                         result = await ecomClient.listOrders(req.body);
                         break;
@@ -153,6 +166,48 @@ async function main() {
                         break;
                     case 'get_user_profile':
                         result = await ecomClient.getUserProfile();
+                        break;
+                    case 'place_order_and_checkout':
+                        result = await ecomClient.placeOrder(req.body);
+                        break;
+                    case 'cancel_customer_order':
+                        result = await ecomClient.cancelCustomerOrder(req.body.orderId, req.body.reason);
+                        break;
+                    case 'manage_cart':
+                        result = await ecomClient.manageCart(req.body);
+                        break;
+                    case 'manage_wishlist':
+                        result = await ecomClient.manageWishlist(req.body);
+                        break;
+                    case 'check_shipping_eta':
+                        result = await ecomClient.checkShippingEta(req.body);
+                        break;
+                    case 'get_product_reviews':
+                        result = await ecomClient.getProductReviews(req.body);
+                        break;
+                    case 'list_product_categories':
+                        result = await ecomClient.listCategories(req.body.lang);
+                        break;
+                    case 'list_brand_storefronts':
+                        result = await ecomClient.listBrands(req.body.lang);
+                        break;
+                    case 'get_return_policy_and_reasons':
+                        result = await ecomClient.getReturnPolicy();
+                        break;
+                    case 'submit_return_request':
+                        result = await ecomClient.submitReturnRequest(req.body);
+                        break;
+                    case 'search_flights':
+                        result = await ecomClient.searchFlights(req.body);
+                        break;
+                    case 'search_airports':
+                        result = await ecomClient.searchAirports(req.body.query);
+                        break;
+                    case 'search_hotels':
+                        result = await ecomClient.searchHotels(req.body);
+                        break;
+                    case 'get_hotel_details':
+                        result = await ecomClient.getHotelDetail(req.body.hotelIdOrName);
                         break;
                     default:
                         return res.status(404).json({ error: `Tool '${toolName}' not found` });

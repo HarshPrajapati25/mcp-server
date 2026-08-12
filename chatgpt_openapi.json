@@ -314,6 +314,34 @@
         "responses": { "200": { "description": "Matching airports" } }
       }
     },
+    "/api/tools/create_product": {
+      "post": {
+        "summary": "Create and publish a new product to store catalog",
+        "operationId": "createProduct",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "price"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "price": { "type": "number" },
+                  "stock": { "type": "integer", "default": 10 },
+                  "description": { "type": "string" },
+                  "categoryId": { "type": "integer" },
+                  "brandName": { "type": "string" },
+                  "sku": { "type": "string" },
+                  "imageUrl": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Product created successfully" } }
+      }
+    },
     "/api/tools/search_hotels": {
       "post": {
         "summary": "Search hotel stays",
