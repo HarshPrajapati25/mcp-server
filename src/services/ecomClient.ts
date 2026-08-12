@@ -147,8 +147,12 @@ export class EcomClient {
             return { authorized: true };
         }
 
-        const authHeader = headers?.['authorization'] || headers?.['Authorization'] || process.env.AUTH_TOKEN;
+        const authHeader = headers?.['authorization'] || headers?.['Authorization'] || process.env.MERCHANT_AUTH_TOKEN || process.env.AUTH_TOKEN;
         const isGuest = !authHeader || authHeader.includes('Unauthenticated') || authHeader.includes('guest');
+
+        if (authHeader && !isGuest) {
+            return { authorized: true };
+        }
 
         // 3. If unauthenticated guest calling protected merchant tool, return Auth Challenge Payload
         if (isGuest) {
